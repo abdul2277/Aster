@@ -1,4 +1,4 @@
-using System;using System.IO;using System.Linq;using System.Threading;using Aster;
+using System;using System.Collections.Generic;using System.IO;using System.Linq;using System.Threading;using Aster;
 static class T{static int fails,passes;
 static void Check(bool ok,string name){if(ok)passes++;else{fails++;Console.WriteLine("FAIL: "+name);}}
 static int Main(){
@@ -66,4 +66,17 @@ static int Main(){
  foreach(var bad in new[]{new[]{24,0},new[]{-1,0},new[]{0,60},new[]{0,-1}})try{PowerPlan.CreateTaskArguments(PowerAction.Shutdown,bad[0],bad[1],127);Check(false,"bad time");}catch(ArgumentOutOfRangeException){passes++;}
  Check(PowerPlan.DeleteTaskArguments()=="/delete /tn AsterPowerTimer /f"&&PowerPlan.QueryTaskArguments()=="/query /tn AsterPowerTimer /fo LIST","delete/query args");
  Check(PowerPlan.Describe(PowerAction.Shutdown,22,30,127)=="Shut down at 22:30 every day"&&PowerPlan.Describe(PowerAction.Restart,7,5,2|4)=="Restart at 07:05 on MON, TUE","describe");
+ // ---- 2.6: Tools hub model
+ var G=new List<string[]>{new[]{"MONITORING","Summary","Processes","Flight recorder"},new[]{"HARDWARE","CPU specs","Space finder","Services","Summary"},new[]{"EMPTY","Drivers"}};
+ Func<string,string> H=n=>n=="Space finder"?"See which folders fill your disk":n=="Processes"?"Running programs and CPU":"";
+ var all=HubModel.Sections(G,"","",false,H);Check(all.Count==3&&all[0].Value.Count==3&&all[1].Value.Count==3,"all sections; a tool listed twice shows once: "+all.Count);
+ var simple=HubModel.Sections(G,"","",true,H);Check(simple.Count==2&&!simple.SelectMany(x=>x.Value).Any(HubModel.IsAdvanced)&&simple[0].Value.SequenceEqual(new[]{"Summary","Processes"}),"simple mode hides advanced tools and drops empty sections");
+ Check(HubModel.Sections(G,"","HARDWARE",false,H).Count==1&&HubModel.Sections(G,"","nope",false,H).Count==0,"category filter");
+ var q=HubModel.Sections(G,"disk",null,false,H);Check(q.Count==1&&q[0].Value[0]=="Space finder","hint search finds Space finder");
+ var q2=HubModel.Sections(G,"proc",null,false,H);Check(q2.Count==1&&q2[0].Value[0]=="Processes","name search");
+ Check(HubModel.Score("Space finder","","space")>HubModel.Score("Disk space","","space")&&HubModel.Score("x","y","zzz")==0&&HubModel.Score("a","b","  ")==1,"ranking: name start beats name contains");
+ Check(HubModel.Sections(G,"folders disk",null,false,H)[0].Value[0]=="Space finder"&&HubModel.Sections(G,"folders zzz",null,false,H).Count==0,"every word must match");
+ var qa=HubModel.QuickAccess(new[]{"Summary","Services","Ghost"},new[]{"Summary","Tools hub","Processes","CPU specs"},n=>n!="Ghost",true,4);Check(qa.SequenceEqual(new[]{"Summary","Processes","CPU specs"}),"quick access: pins then recent, deduped, no hub/ghost/advanced: "+string.Join(",",qa.ToArray()));
+ Check(HubModel.QuickAccess(null,null,n=>true,false,3).Count==0&&HubModel.QuickAccess(new[]{"a","b","c","d"},null,n=>true,false,2).Count==2,"quick access limits and nulls");
+ Check(HubModel.Icon("Summary")=="📊"&&HubModel.Icon("Unknown tool")=="▫"&&HubModel.Icon(null)=="▫","icons");
  Console.WriteLine(passes+" passed, "+fails+" failed");return fails==0?0:1;}}

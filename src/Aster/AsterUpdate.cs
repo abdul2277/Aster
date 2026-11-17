@@ -11,7 +11,7 @@ namespace Aster;
 
 internal static class AsterUpdate
 {
-	public const string CurrentVersion = "2.5";
+	public const string CurrentVersion = "2.6";
 
 	private const long MaxTotal = 262144000L;
 
@@ -158,7 +158,7 @@ internal static class AsterUpdate
 		UpdateManifest updateManifest = javaScriptSerializer.Deserialize<UpdateManifest>(ManifestText(value));
 		if (updateManifest == null || updateManifest.Schema != 1 || updateManifest.AppId != "aster.desktop" || !Version.TryParse(updateManifest.Version, out var result) || result <= new Version(AsterUpdate.CurrentVersion) || updateManifest.Files == null || updateManifest.Files.Count == 0 || updateManifest.Files.Count > 4999)
 		{
-			throw new InvalidDataException("Not a compatible newer Aster release. Installed version: 2.5.");
+			throw new InvalidDataException("Not a compatible newer Aster release. Installed version: 2.6.");
 		}
 		string text = array[0].Key.Substring(0, array[0].Key.Length - "release.json".Length);
 		if (text.TrimEnd('/').Contains('/'))

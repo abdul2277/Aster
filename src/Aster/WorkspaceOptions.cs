@@ -60,6 +60,8 @@ internal class WorkspaceOptions
 
 	public bool AlwaysOnTop;
 
+	public bool SimpleMode;
+
 	public List<string> Pins = new List<string> { "Summary", "Windows advisor", "Processes" };
 
 	public static string FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Pulse", "Workspace.json");

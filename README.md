@@ -2,9 +2,13 @@
 Aster is a work-in-progress task manager and system toolkit for Windows.
 
 ## Download
-**[Aster-Windows-v2.5.zip](Aster-Windows-v2.5.zip)**: extract the whole ZIP and run `Aster.exe`. If you already have Aster 2.3 or 2.4, open **Update Aster**, choose the ZIP, then switch to the updated version. Your settings are kept.
+**[Aster-Windows-v2.6.zip](Aster-Windows-v2.6.zip)**: extract the whole ZIP and run `Aster.exe`. If you already have Aster 2.3 to 2.5, open **Update Aster**, choose the ZIP, then switch to the updated version. Your settings are kept.
 
-Requires Windows 10/11 (64-bit) with .NET Framework 4.x. `Aster.exe` in this folder is the same 2.5 build.
+Requires Windows 10/11 (64-bit) with .NET Framework 4.x. `Aster.exe` in this folder is the same 2.6 build.
+
+## New in 2.6
+
+- **Calmer Tools hub:** compact icon tiles, a quick-access row (pinned + recent), word-by-word search, star-to-pin, and **Simple mode** that hides 23 specialist tools from the hub and search (Preferences or the hub). Nothing is removed.
 
 ## New in 2.5
 
@@ -22,7 +26,7 @@ Requires Windows 10/11 (64-bit) with .NET Framework 4.x. `Aster.exe` in this fol
 All 2.3 features (Horizon desktop, Desktop mods, online updates, monitoring, hardware, repair and productivity tools) are unchanged.
 
 ## Repository layout
-- `Aster-Windows-v2.5.zip`: the full portable package (app, Python runtime for alerts, WebView2, AuraWallpaper)
+- `Aster-Windows-v2.6.zip`: the full portable package (app, Python runtime for alerts, WebView2, AuraWallpaper)
 - `src/`: C# source for Aster 2.4 (`Aster.csproj`, .NET Framework 4.8)
 - `tests/CoreTests.cs`: automated checks for the 2.4 and 2.5 tool logic
 - `tools/make_package.py`: builds an update-ready ZIP with a `release.json` manifest

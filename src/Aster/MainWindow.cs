@@ -1772,7 +1772,7 @@ internal partial class MainWindow : Form
 				}
 				else
 				{
-					onlineStatus = "You're up to date. Installed Aster 2.5.\r\nLast checked: " + DateTime.Now.ToString("g");
+					onlineStatus = "You're up to date. Installed Aster 2.6.\r\nLast checked: " + DateTime.Now.ToString("g");
 				}
 			}
 			catch (UpdateFeedMissingException)
@@ -1952,7 +1952,7 @@ internal partial class MainWindow : Form
 				}
 			};
 		}
-		sub.Text = "Installed Aster 2.5 · automatic download and installation";
+		sub.Text = "Installed Aster 2.6 · automatic download and installation";
 		FlowLayoutPanel flowLayoutPanel = FeatureFlow("Updates made simple.", "Check for a new version, choose Update now, and Aster handles the rest. No ZIP to select or files to copy.");
 		TextBox state = new TextBox
 		{
@@ -2519,7 +2519,7 @@ internal partial class MainWindow : Form
 
 	private string CommandStatus()
 	{
-		return (paused ? "Monitoring paused" : "Monitoring live") + "  •  " + ((current == null) ? "Waiting for readings" : ("CPU " + current.Cpu.ToString("F0") + "%  /  RAM " + current.MemoryPercent.ToString("F0") + "%")) + "\r\n" + (preferences.PressureEnabled ? "Performance alerts on" : "Performance alerts off") + "  •  " + unreadPressure + " unread alerts  •  Aster 2.5\r\n" + MaintenanceSummary();
+		return (paused ? "Monitoring paused" : "Monitoring live") + "  •  " + ((current == null) ? "Waiting for readings" : ("CPU " + current.Cpu.ToString("F0") + "%  /  RAM " + current.MemoryPercent.ToString("F0") + "%")) + "\r\n" + (preferences.PressureEnabled ? "Performance alerts on" : "Performance alerts off") + "  •  " + unreadPressure + " unread alerts  •  Aster 2.6\r\n" + MaintenanceSummary();
 	}
 
 	private FlowLayoutPanel FeatureFlow(string title, string description)
@@ -2836,7 +2836,7 @@ internal partial class MainWindow : Form
 			content.Controls.Add(button2);
 			return;
 		}
-		sub.Text = "Installed: Aster 2.5 · install a newer downloaded package";
+		sub.Text = "Installed: Aster 2.6 · install a newer downloaded package";
 		string selected = null;
 		string installed = installedUpdateFolder;
 		UpdatePackage reviewed = null;
@@ -2875,7 +2875,7 @@ internal partial class MainWindow : Form
 			ScrollBars = ScrollBars.Vertical,
 			Width = 740,
 			Height = 230,
-			Text = "Current version: 2.5\r\nChoose an update package to begin."
+			Text = "Current version: 2.6\r\nChoose an update package to begin."
 		};
 		if (installed != null)
 		{
@@ -3228,7 +3228,7 @@ internal partial class MainWindow : Form
 	{
 		if (query.Length > 0)
 		{
-			return new string[1][] { new string[1] { "SEARCH ALL TOOLS" }.Concat(buttons.Keys.Where((string n) => ToolCatalog.Matches(n, query))).ToArray() };
+			return new string[1][] { new string[1] { "SEARCH ALL TOOLS" }.Concat(buttons.Keys.Where((string n) => ToolCatalog.Matches(n, query) && !(preferences.SimpleMode && HubModel.IsAdvanced(n)))).ToArray() };
 		}
 		return new string[3][]
 		{
@@ -3240,171 +3240,15 @@ internal partial class MainWindow : Form
 
 	private void BuildToolsHub()
 	{
-		sub.Text = "All your tools, neatly grouped · search or choose a category";
-		TableLayoutPanel tableLayoutPanel = new TableLayoutPanel();
-		tableLayoutPanel.Dock = DockStyle.Fill;
-		tableLayoutPanel.ColumnCount = 1;
-		tableLayoutPanel.RowCount = 3;
-		TableLayoutPanel tableLayoutPanel2 = tableLayoutPanel;
-		tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 46f));
-		tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 44f));
-		tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-		content.Controls.Add(tableLayoutPanel2);
-		FlowLayoutPanel flowLayoutPanel = new FlowLayoutPanel();
-		flowLayoutPanel.Dock = DockStyle.Fill;
-		FlowLayoutPanel flowLayoutPanel2 = flowLayoutPanel;
-		TextBox find = new TextBox
-		{
-			Width = 310,
-			AccessibleName = "Search all tools",
-			Font = new Font("Segoe UI", 12f)
-		};
-		ComboBox category = new ComboBox
-		{
-			Width = 250,
-			DropDownStyle = ComboBoxStyle.DropDownList,
-			AccessibleName = "Tool category"
-		};
-		category.Items.Add("All categories");
-		category.Items.AddRange(((IEnumerable<string[]>)ToolCatalog.Groups).Select((Func<string[], object>)((string[] g) => g[0])).ToArray());
-		category.SelectedIndex = 0;
-		flowLayoutPanel2.Controls.Add(new Label
-		{
-			Text = "Find a tool",
-			AutoSize = true,
-			Margin = new Padding(0, 7, 12, 0)
-		});
-		flowLayoutPanel2.Controls.Add(find);
-		flowLayoutPanel2.Controls.Add(category);
-		tableLayoutPanel2.Controls.Add(flowLayoutPanel2, 0, 0);
-		FlowLayoutPanel flowLayoutPanel3 = new FlowLayoutPanel();
-		flowLayoutPanel3.Dock = DockStyle.Fill;
-		flowLayoutPanel3.AutoScroll = true;
-		flowLayoutPanel3.WrapContents = false;
-		FlowLayoutPanel flowLayoutPanel4 = flowLayoutPanel3;
-		flowLayoutPanel4.Controls.Add(new Label
-		{
-			Text = "RECENT",
-			AutoSize = true,
-			Margin = new Padding(0, 10, 12, 0)
-		});
-		foreach (string recentTool in recentTools)
-		{
-			string target = recentTool;
-			Button button = Button(recentTool);
-			button.Click += delegate
-			{
-				Navigate(target);
-			};
-			flowLayoutPanel4.Controls.Add(button);
-		}
-		tableLayoutPanel2.Controls.Add(flowLayoutPanel4, 0, 1);
-		FlowLayoutPanel sections = new FlowLayoutPanel
-		{
-			Dock = DockStyle.Fill,
-			AutoScroll = true,
-			FlowDirection = FlowDirection.TopDown,
-			WrapContents = false
-		};
-		tableLayoutPanel2.Controls.Add(sections, 0, 2);
-		Action render = delegate
-		{
-			sections.SuspendLayout();
-			Control[] array = sections.Controls.Cast<Control>().ToArray();
-			foreach (Control control in array)
-			{
-				control.Dispose();
-			}
-			int num = 0;
-			string[][] groups = ToolCatalog.Groups;
-			foreach (string[] array2 in groups)
-			{
-				if (category.SelectedIndex <= 0 || !((string)category.SelectedItem != array2[0]))
-				{
-					string[] array3 = (from n in array2.Skip(1)
-						where ToolCatalog.Matches(n, find.Text.Trim())
-						select n).ToArray();
-					if (array3.Length != 0)
-					{
-						sections.Controls.Add(new Label
-						{
-							Text = array2[0],
-							UseMnemonic = false,
-							AutoSize = true,
-							Font = new Font("Segoe UI", 11f, FontStyle.Bold),
-							Margin = new Padding(3, 18, 0, 10)
-						});
-						string[] array4 = array3;
-						foreach (string text2 in array4)
-						{
-							string target2 = text2;
-							FlowLayoutPanel flowLayoutPanel5 = new FlowLayoutPanel
-							{
-								Width = 760,
-								Height = 47,
-								WrapContents = false
-							};
-							Button button2 = Button(text2 + "  →");
-							button2.AutoSize = false;
-							button2.Width = 225;
-							button2.Height = 38;
-							button2.TextAlign = ContentAlignment.MiddleLeft;
-							button2.Click += delegate
-							{
-								Navigate(target2);
-							};
-							flowLayoutPanel5.Controls.Add(button2);
-							flowLayoutPanel5.Controls.Add(new Label
-							{
-								Text = ToolCatalog.Hint(text2),
-								Width = 430,
-								Height = 38,
-								TextAlign = ContentAlignment.MiddleLeft
-							});
-							Button pin = Button(preferences.Pins.Contains(text2) ? "★" : "☆");
-							pin.AccessibleName = "Pin or unpin " + text2;
-							pin.Click += delegate
-							{
-								if (preferences.Pins.Contains(target2))
-								{
-									preferences.Pins.Remove(target2);
-								}
-								else
-								{
-									preferences.Pins.Add(target2);
-								}
-								SavePreferences();
-								pin.Text = (preferences.Pins.Contains(target2) ? "★" : "☆");
-								RebuildNavigation();
-							};
-							flowLayoutPanel5.Controls.Add(pin);
-							sections.Controls.Add(flowLayoutPanel5);
-							num++;
-						}
-					}
-				}
-			}
-			if (num == 0)
-			{
-				sections.Controls.Add(new Label
-				{
-					Text = "No tools match. Try another search or category.",
-					AutoSize = true,
-					Margin = new Padding(10)
-				});
-			}
-			sections.ResumeLayout();
-			ApplyAppTheme();
-		};
-		find.TextChanged += delegate
-		{
-			render();
-		};
-		category.SelectedIndexChanged += delegate
-		{
-			render();
-		};
-		render();
+		sub.Text = "Everything Aster can do · search, pin ☆ your favourites, or turn on Simple mode";
+		var view = new ToolsHubView(ToolCatalog.Groups, ToolCatalog.Hint, new HashSet<string>(preferences.Pins),
+			() => recentTools, preferences.SimpleMode, (string n) => buttons.ContainsKey(n),
+			(string n) => Navigate(n),
+			(string n) => { if (preferences.Pins.Contains(n)) preferences.Pins.Remove(n); else preferences.Pins.Add(n); SavePreferences(); RebuildNavigation(); },
+			(bool on) => { preferences.SimpleMode = on; SavePreferences(); },
+			panel, Color.FromArgb(204, 215, 229), muted, Color.FromArgb(94, 196, 214));
+		content.Controls.Add(view);
+		ApplyAppTheme();
 	}
 
 	private void BuildSystemCheck()
@@ -4629,6 +4473,20 @@ internal partial class MainWindow : Form
 			SavePreferences();
 		};
 		flowLayoutPanel2.Controls.Add(top);
+		CheckBox simpleMode = new CheckBox
+		{
+			Text = "Simple mode: hide specialist tools in the Tools hub and in search",
+			AutoSize = true,
+			Checked = preferences.SimpleMode,
+			Margin = new Padding(0, 0, 0, 15)
+		};
+		simpleMode.CheckedChanged += delegate
+		{
+			preferences.SimpleMode = simpleMode.Checked;
+			SavePreferences();
+			RebuildNavigation();
+		};
+		flowLayoutPanel2.Controls.Add(simpleMode);
 		flowLayoutPanel2.Controls.Add(new Label
 		{
 			Text = "Use ☆ Pin page in the header to add or remove sidebar favorites.\r\nSearch the sidebar to filter pages. Ctrl+K jumps to any page.\r\nF5 refreshes the current view. Saved cases and AI tools are in Windows advisor.",

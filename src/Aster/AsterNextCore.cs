@@ -242,4 +242,59 @@ public static class PowerPlan {
             : string.Format(CultureInfo.InvariantCulture, "{0:00}:{1:00}", left.Minutes, left.Seconds);
     }
 }
+
+// v2.6 — Tools hub model: what to show, in which order, with a calmer "Simple mode".
+public static class HubModel {
+    // Specialist tools that Simple mode hides from the hub and the sidebar search. Nothing is removed: turn Simple mode off to see them again.
+    public static readonly HashSet<string> Advanced = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
+        "Air Defense feed", "Recovery toolbox", "Services", "Drivers", "Users", "Connections", "Flight recorder", "Session timeline", "Performance compare",
+        "Diagnostics bundle", "Motherboard & BIOS", "Hardware compare", "Theme studio", "Playground", "Home layout", "Wallpaper studio", "Compact monitor",
+        "Insights", "App history", "Horizon desktop", "Desktop mods", "Network adapters", "Memory specs" };
+    public static bool IsAdvanced(string name) { return Advanced.Contains(name ?? ""); }
+
+    static readonly Dictionary<string, string> Icons = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
+        {"Summary","📊"},{"Performance","⚡"},{"Processes","🧮"},{"CPU specs","🧠"},{"GPU","🎮"},{"Storage specs","💽"},{"System info","ℹ"},{"Disk space","📦"},{"Space finder","🔍"},
+        {"Network lab","🌐"},{"Ping monitor","📶"},{"Hardware report","📝"},{"Update Aster","⬆"},{"System check","🩺"},{"Windows advisor","🤖"},{"Backup center","💾"},{"Help center","❓"},
+        {"Startup apps","🚀"},{"Installed apps","🗂"},{"Maintenance planner","🗓"},{"Command Center","🧭"},{"Notebook","📓"},{"Checklist","✅"},{"Focus","🎯"},{"Focus timer","⏱"},
+        {"Power timer","⏻"},{"Video player","🎬"},{"Themes","🎨"},{"Preferences","⚙"},{"Performance alerts","🔔"},{"Memory specs","🧩"},{"Services","🛠"},{"Drivers","🔧"},{"Session timeline","🕘"},{"Performance compare","⚖"},{"Air Defense feed","🛡"},{"Compact monitor","🔲"},{"Insights","💡"},{"App history","📜"},{"Flight recorder","✈"},{"Motherboard & BIOS","🧱"},{"Network adapters","🔌"},{"Hardware compare","🆚"},{"Diagnostics bundle","📦"},{"Recovery toolbox","🧰"},{"Connections","🔗"},{"Users","👤"},{"Horizon desktop","🪟"},{"Desktop mods","🧩"},{"Theme studio","🖌"},{"Home layout","🏠"},{"Wallpaper studio","🖼"},{"Playground","🎲"} };
+    public static string Icon(string name) { string i; return Icons.TryGetValue(name ?? "", out i) ? i : "▫"; }
+
+    // Matches every word of the query against the tool name and its description. Name matches rank first.
+    public static int Score(string name, string hint, string query) {
+        if (string.IsNullOrWhiteSpace(query)) return 1;
+        int total = 0;
+        foreach (string w in query.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries)) {
+            int n = (name ?? "").IndexOf(w, StringComparison.OrdinalIgnoreCase), h = (hint ?? "").IndexOf(w, StringComparison.OrdinalIgnoreCase);
+            if (n < 0 && h < 0) return 0;
+            total += n == 0 ? 40 : n > 0 ? 25 : 8;
+        }
+        return total;
+    }
+
+    // groups: [groupTitle, tool, tool, ...]. Returns the sections to show, best matches first inside each section.
+    public static List<KeyValuePair<string, List<string>>> Sections(IList<string[]> groups, string query, string category, bool simple, Func<string, string> hint) {
+        var result = new List<KeyValuePair<string, List<string>>>(); var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var g in groups) {
+            if (!string.IsNullOrEmpty(category) && !string.Equals(category, g[0], StringComparison.OrdinalIgnoreCase)) continue;
+            var scored = new List<KeyValuePair<string, int>>();
+            for (int i = 1; i < g.Length; i++) {
+                string name = g[i]; if (simple && IsAdvanced(name)) continue; if (!seen.Add(name)) continue; // a tool listed in two groups shows once
+                int sc = Score(name, hint == null ? "" : hint(name), query); if (sc > 0) scored.Add(new KeyValuePair<string, int>(name, sc));
+            }
+            if (scored.Count == 0) continue;
+            if (!string.IsNullOrWhiteSpace(query)) scored = scored.OrderByDescending(x => x.Value).ToList();
+            result.Add(new KeyValuePair<string, List<string>>(g[0], scored.Select(x => x.Key).ToList()));
+        }
+        return result;
+    }
+
+    // The quick-access row: pinned tools first, then what you opened recently, no duplicates, only tools that exist.
+    public static List<string> QuickAccess(IEnumerable<string> pins, IEnumerable<string> recent, Func<string, bool> exists, bool simple, int max) {
+        var o = new List<string>(); var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (string n in (pins ?? new string[0]).Concat(recent ?? new string[0])) {
+            if (o.Count >= max) break; if (string.IsNullOrWhiteSpace(n) || n == "Tools hub" || !exists(n) || (simple && IsAdvanced(n)) || !seen.Add(n)) continue; o.Add(n);
+        }
+        return o;
+    }
+}
 }
