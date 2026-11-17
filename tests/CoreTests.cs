@@ -2,6 +2,8 @@ using System;using System.IO;using System.Linq;using System.Threading;using Aste
 static class T{static int fails,passes;
 static void Check(bool ok,string name){if(ok)passes++;else{fails++;Console.WriteLine("FAIL: "+name);}}
 static int Main(){
+ // ---- 2.5 additions
+ Check(SpaceScanner.CsvCell("=cmd|' /C calc'!A0")=="'=cmd|' /C calc'!A0","formula guard");Check(SpaceScanner.CsvCell("a,b")=="\"a,b\""&&SpaceScanner.CsvCell("say \"hi\"")=="\"say \"\"hi\"\"\""&&SpaceScanner.CsvCell(null)==""&&SpaceScanner.CsvCell("+1")=="'+1","csv escaping");
  // SpaceScanner
  string root=Path.Combine(Path.GetTempPath(),"aster-space-"+Guid.NewGuid().ToString("N"));
  Directory.CreateDirectory(Path.Combine(root,"big","deep"));Directory.CreateDirectory(Path.Combine(root,"small"));
@@ -46,4 +48,22 @@ static int Main(){
  Check(PowerPlan.Arguments(PowerAction.Shutdown,1800).StartsWith("/s /t 1800 /c ")&&PowerPlan.Arguments(PowerAction.Restart,0).StartsWith("/r /t 0 "),"shutdown args");
  try{PowerPlan.Arguments(PowerAction.Shutdown,-1);Check(false,"negative rejected");}catch(ArgumentOutOfRangeException){passes++;}
  Check(PowerPlan.Countdown(TimeSpan.FromSeconds(65))=="01:05"&&PowerPlan.Countdown(TimeSpan.FromSeconds(3725))=="1:02:05"&&PowerPlan.Countdown(TimeSpan.FromSeconds(-3))=="00:00","countdown");
+ // ---- 2.5: CSV, summary, ping report, recurring plans
+ var rep=new SpaceReport{Root="C:\\Users",TotalBytes=1000,Files=2};rep.TopFolders.Add(new SpaceItem{Path="C:\\Users\\a,b",Bytes=600,Files=1});rep.TopFolders.Add(new SpaceItem{Path="C:\\Users\\c",Bytes=400,Files=1});
+ rep.LargestFiles.Add(new SpaceItem{Path="=HYPERLINK(\"http://x\")",Bytes=600,Files=1,Modified=new DateTime(2026,1,2)});
+ var csv=SpaceScanner.ToCsv(rep).Split(new[]{"\r\n"},StringSplitOptions.RemoveEmptyEntries);
+ Check(csv.Length==4&&csv[0].StartsWith("Kind,Size"),"csv rows");Check(csv[1]=="Folder,600,60.00,1,,\"C:\\Users\\a,b\"","csv folder row: "+csv[1]);Check(csv[3].Contains("'=HYPERLINK(\"\"http://x\"\")"),"csv formula neutralised: "+csv[3]);Check(csv[3].Contains(",2026-01-02,"),"csv date");
+ Check(SpaceScanner.ToCsv(new SpaceReport{Root="x"}).Split(new[]{"\r\n"},StringSplitOptions.RemoveEmptyEntries).Length==1,"empty csv has header only");
+ var sum=SpaceScanner.Summary(rep,1);Check(sum.Contains("1000 B in 2 files")&&sum.Contains("a,b")&&!sum.Contains("C:\\Users\\c"),"summary respects top N");
+ var ps=new PingStats(5);foreach(long? v in new long?[]{20,30,null,40})ps.Add(v);var pr=PingReport.Text("1.1.1.1",ps,new DateTime(2026,5,1,12,0,0),new DateTime(2026,5,1,11,58,30));
+ Check(pr.Contains("Host: 1.1.1.1")&&pr.Contains("Sent: 4   Received: 3   Loss: 25.0%")&&pr.Contains("avg 30.0  min 20  max 40")&&pr.Contains("Monitored for: 00:01:30")&&pr.Contains("20 30 40"),"ping report text");
+ Check(PingReport.Text("h",new PingStats(),DateTime.Now).Contains("Waiting for the first reply"),"ping report with no data");
+ Check(PowerPlan.DaysText(127)=="SUN,MON,TUE,WED,THU,FRI,SAT"&&PowerPlan.DaysText(2|4|8|16|32)=="MON,TUE,WED,THU,FRI"&&PowerPlan.DaysText(1)=="SUN","days text");
+ foreach(int bad in new[]{0,-1,128})try{PowerPlan.DaysText(bad);Check(false,"bad days "+bad);}catch(ArgumentOutOfRangeException){passes++;}
+ var a1=PowerPlan.CreateTaskArguments(PowerAction.Shutdown,23,5,127);Check(a1.StartsWith("/create /sc DAILY /st 23:05 /tn AsterPowerTimer /tr ")&&a1.Contains("shutdown.exe /s /t 60")&&a1.EndsWith(" /f"),"daily args: "+a1);
+ var a2=PowerPlan.CreateTaskArguments(PowerAction.Restart,6,0,2|4|8|16|32);Check(a2.Contains("/sc WEEKLY /d MON,TUE,WED,THU,FRI /st 06:00")&&a2.Contains("shutdown.exe /r"),"weekly args: "+a2);
+ Check(!a1.Contains("&")&&!a1.Contains("|")&&!a1.Contains(";"),"no shell metacharacters in the command");
+ foreach(var bad in new[]{new[]{24,0},new[]{-1,0},new[]{0,60},new[]{0,-1}})try{PowerPlan.CreateTaskArguments(PowerAction.Shutdown,bad[0],bad[1],127);Check(false,"bad time");}catch(ArgumentOutOfRangeException){passes++;}
+ Check(PowerPlan.DeleteTaskArguments()=="/delete /tn AsterPowerTimer /f"&&PowerPlan.QueryTaskArguments()=="/query /tn AsterPowerTimer /fo LIST","delete/query args");
+ Check(PowerPlan.Describe(PowerAction.Shutdown,22,30,127)=="Shut down at 22:30 every day"&&PowerPlan.Describe(PowerAction.Restart,7,5,2|4)=="Restart at 07:05 on MON, TUE","describe");
  Console.WriteLine(passes+" passed, "+fails+" failed");return fails==0?0:1;}}

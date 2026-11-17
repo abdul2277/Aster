@@ -1772,7 +1772,7 @@ internal partial class MainWindow : Form
 				}
 				else
 				{
-					onlineStatus = "You're up to date. Installed Aster 2.4.\r\nLast checked: " + DateTime.Now.ToString("g");
+					onlineStatus = "You're up to date. Installed Aster 2.5.\r\nLast checked: " + DateTime.Now.ToString("g");
 				}
 			}
 			catch (UpdateFeedMissingException)
@@ -1952,7 +1952,7 @@ internal partial class MainWindow : Form
 				}
 			};
 		}
-		sub.Text = "Installed Aster 2.4 · automatic download and installation";
+		sub.Text = "Installed Aster 2.5 · automatic download and installation";
 		FlowLayoutPanel flowLayoutPanel = FeatureFlow("Updates made simple.", "Check for a new version, choose Update now, and Aster handles the rest. No ZIP to select or files to copy.");
 		TextBox state = new TextBox
 		{
@@ -2519,7 +2519,7 @@ internal partial class MainWindow : Form
 
 	private string CommandStatus()
 	{
-		return (paused ? "Monitoring paused" : "Monitoring live") + "  •  " + ((current == null) ? "Waiting for readings" : ("CPU " + current.Cpu.ToString("F0") + "%  /  RAM " + current.MemoryPercent.ToString("F0") + "%")) + "\r\n" + (preferences.PressureEnabled ? "Performance alerts on" : "Performance alerts off") + "  •  " + unreadPressure + " unread alerts  •  Aster 2.4\r\n" + MaintenanceSummary();
+		return (paused ? "Monitoring paused" : "Monitoring live") + "  •  " + ((current == null) ? "Waiting for readings" : ("CPU " + current.Cpu.ToString("F0") + "%  /  RAM " + current.MemoryPercent.ToString("F0") + "%")) + "\r\n" + (preferences.PressureEnabled ? "Performance alerts on" : "Performance alerts off") + "  •  " + unreadPressure + " unread alerts  •  Aster 2.5\r\n" + MaintenanceSummary();
 	}
 
 	private FlowLayoutPanel FeatureFlow(string title, string description)
@@ -2836,7 +2836,7 @@ internal partial class MainWindow : Form
 			content.Controls.Add(button2);
 			return;
 		}
-		sub.Text = "Installed: Aster 2.4 · install a newer downloaded package";
+		sub.Text = "Installed: Aster 2.5 · install a newer downloaded package";
 		string selected = null;
 		string installed = installedUpdateFolder;
 		UpdatePackage reviewed = null;
@@ -2875,7 +2875,7 @@ internal partial class MainWindow : Form
 			ScrollBars = ScrollBars.Vertical,
 			Width = 740,
 			Height = 230,
-			Text = "Current version: 2.4\r\nChoose an update package to begin."
+			Text = "Current version: 2.5\r\nChoose an update package to begin."
 		};
 		if (installed != null)
 		{

@@ -46,9 +46,9 @@ partial class MainWindow {
         var actions = new FlowLayoutPanel { Dock = DockStyle.Fill };
         var folder = new TextBox { Width = 360, Font = new Font("Segoe UI", 11), AccessibleName = "Folder to scan",
             Text = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) };
-        var browse = Button("Browse…"); var scan = Button("Scan"); var stop = Button("Stop"); var open = Button("Show in Explorer"); var export = Button("Save report");
-        stop.Enabled = open.Enabled = export.Enabled = false;
-        actions.Controls.AddRange(new Control[] { folder, browse, scan, stop, open, export });
+        var browse = Button("Browse…"); var scan = Button("Scan"); var stop = Button("Stop"); var open = Button("Show in Explorer"); var export = Button("Save report"); var csv = Button("Save CSV"); var copy = Button("Copy summary");
+        stop.Enabled = open.Enabled = export.Enabled = csv.Enabled = copy.Enabled = false;
+        actions.Controls.AddRange(new Control[] { folder, browse, scan, stop, open, export, csv, copy });
         var status = new Label { Dock = DockStyle.Fill, Text = "Choose a folder or drive and select Scan.", TextAlign = ContentAlignment.MiddleLeft };
         var tabs = new TabControl { Dock = DockStyle.Fill };
         var files = NextList("Size", "Share", "Modified", "Path");
@@ -82,12 +82,20 @@ partial class MainWindow {
                     try { File.WriteAllText(dialog.FileName, SpaceText(last), Encoding.UTF8); }
                     catch (Exception ex) { MessageBox.Show(this, ex.Message, "Space finder"); }
         };
+        csv.Click += (s, e) => {
+            if (last == null) return;
+            using (var dialog = new SaveFileDialog { Filter = "CSV for Excel|*.csv", FileName = "Aster-space-report.csv" })
+                if (dialog.ShowDialog(this) == DialogResult.OK)
+                    try { File.WriteAllText(dialog.FileName, SpaceScanner.ToCsv(last), new UTF8Encoding(true)); }
+                    catch (Exception ex) { MessageBox.Show(this, ex.Message, "Space finder"); }
+        };
+        copy.Click += (s, e) => { if (last == null) return; try { Clipboard.SetText(SpaceScanner.Summary(last)); status.Text = "Summary copied. Paste it into a chat or email."; } catch (Exception ex) { MessageBox.Show(this, ex.Message, "Space finder"); } };
         scan.Click += async (s, e) => {
             string root = folder.Text.Trim();
             if (!Directory.Exists(root)) { status.Text = "That folder does not exist."; return; }
             if (spaceScan != null) spaceScan.Cancel();
             var cts = new CancellationTokenSource(); spaceScan = cts;
-            scan.Enabled = open.Enabled = export.Enabled = false; stop.Enabled = true;
+            scan.Enabled = open.Enabled = export.Enabled = csv.Enabled = copy.Enabled = false; stop.Enabled = true;
             files.Items.Clear(); folders.Items.Clear(); types.Items.Clear();
             status.Text = "Scanning " + root + " …";
             var started = DateTime.Now;
@@ -102,7 +110,7 @@ partial class MainWindow {
                     + report.Files.ToString("N0") + " files, " + report.Folders.ToString("N0") + " folders"
                     + (report.Skipped > 0 ? " · " + report.Skipped + " items skipped (no access)" : "")
                     + " · " + (DateTime.Now - started).TotalSeconds.ToString("F1") + " s";
-                open.Enabled = export.Enabled = true;
+                open.Enabled = export.Enabled = csv.Enabled = copy.Enabled = true;
                 AddSessionEvent("Space finder scanned " + root);
             } catch (Exception ex) {
                 if (!status.IsDisposed) status.Text = "Scan failed: " + ex.Message;
@@ -144,8 +152,8 @@ partial class MainWindow {
         host.Items.AddRange(new object[] { "1.1.1.1", "8.8.8.8", "9.9.9.9", "bing.com", "github.com" });
         string gateway = DefaultGateway(); if (gateway != null) host.Items.Insert(0, gateway + "  (router)");
         host.SelectedIndex = 0;
-        var start = Button("Start"); var stop = Button("Stop"); var reset = Button("Reset"); stop.Enabled = false;
-        actions.Controls.AddRange(new Control[] { new Label { Text = "Host", AutoSize = true, Margin = new Padding(0, 8, 8, 0) }, host, start, stop, reset });
+        var start = Button("Start"); var stop = Button("Stop"); var reset = Button("Reset"); var saveRep = Button("Save report"); var copyRep = Button("Copy report"); stop.Enabled = false; DateTime? startedAt = null;
+        actions.Controls.AddRange(new Control[] { new Label { Text = "Host", AutoSize = true, Margin = new Padding(0, 8, 8, 0) }, host, start, stop, reset, saveRep, copyRep });
         var readout = new Label { Dock = DockStyle.Fill, Font = new Font("Segoe UI", 12), Text = "Select Start to measure your connection." };
         var chart = new PingChart { Dock = DockStyle.Fill };
         layout.Controls.Add(actions, 0, 0); layout.Controls.Add(readout, 0, 1); layout.Controls.Add(chart, 0, 2);
@@ -168,9 +176,18 @@ partial class MainWindow {
             if (readout.IsDisposed || !timer.Enabled) return;
             stats.Add(ms); render();
         };
-        start.Click += (s, e) => { if (string.IsNullOrWhiteSpace(host.Text)) return; timer.Start(); start.Enabled = false; stop.Enabled = true; host.Enabled = false; AddSessionEvent("Ping monitor started: " + host.Text); };
+        Func<string> reportText = () => PingReport.Text((host.Text ?? "").Split(' ')[0].Trim(), stats, DateTime.Now, startedAt);
+        saveRep.Click += (s, e) => {
+            if (stats.Sent == 0) { MessageBox.Show(this, "Start the monitor and wait for a few replies first.", "Ping monitor"); return; }
+            using (var dialog = new SaveFileDialog { Filter = "Text report|*.txt", FileName = "Aster-ping-report.txt" })
+                if (dialog.ShowDialog(this) == DialogResult.OK)
+                    try { File.WriteAllText(dialog.FileName, reportText(), Encoding.UTF8); }
+                    catch (Exception ex) { MessageBox.Show(this, ex.Message, "Ping monitor"); }
+        };
+        copyRep.Click += (s, e) => { if (stats.Sent == 0) return; try { Clipboard.SetText(reportText()); } catch (Exception ex) { MessageBox.Show(this, ex.Message, "Ping monitor"); } };
+        start.Click += (s, e) => { if (string.IsNullOrWhiteSpace(host.Text)) return; if (!startedAt.HasValue) startedAt = DateTime.Now; timer.Start(); start.Enabled = false; stop.Enabled = true; host.Enabled = false; AddSessionEvent("Ping monitor started: " + host.Text); };
         stop.Click += (s, e) => { timer.Stop(); start.Enabled = true; stop.Enabled = false; host.Enabled = true; };
-        reset.Click += (s, e) => { stats.Reset(); readout.Text = "Statistics cleared."; chart.Invalidate(); };
+        reset.Click += (s, e) => { stats.Reset(); startedAt = null; readout.Text = "Statistics cleared."; chart.Invalidate(); };
         layout.Disposed += (s, e) => { timer.Stop(); timer.Dispose(); ping.Dispose(); };
         ApplyAppTheme();
     }
@@ -214,7 +231,7 @@ partial class MainWindow {
 
     void BuildPowerTimer() {
         sub.Text = "Schedule shutdown or restart · cancel any time · uses Windows' own shutdown tool";
-        var layout = NextLayout(52, 52, 120, 0);
+        var layout = NextLayout(52, 52, 44, 44, 90, 0);
         var row1 = new FlowLayoutPanel { Dock = DockStyle.Fill };
         var action = new ComboBox { Width = 130, DropDownStyle = ComboBoxStyle.DropDownList, AccessibleName = "Power action" };
         action.Items.AddRange(new object[] { "Shut down", "Restart" }); action.SelectedIndex = 0;
@@ -228,7 +245,22 @@ partial class MainWindow {
         row2.Controls.AddRange(new Control[] { new Label { Text = "or at", AutoSize = true, Margin = new Padding(0, 8, 6, 0) }, clock, atTime, cancel, lockNow, sleepNow });
         var countdown = new Label { Dock = DockStyle.Fill, Font = new Font("Segoe UI", 30, FontStyle.Bold), TextAlign = ContentAlignment.MiddleLeft };
         var note = new Label { Dock = DockStyle.Fill, Font = new Font("Segoe UI", 10), Text = "Save your work before the deadline — Windows closes apps when it shuts down. Windows also shows its own notice, and \"shutdown /a\" in any terminal cancels the plan even if Aster is closed." };
-        layout.Controls.Add(row1, 0, 0); layout.Controls.Add(row2, 0, 1); layout.Controls.Add(countdown, 0, 2); layout.Controls.Add(note, 0, 3);
+        var rowR = new FlowLayoutPanel { Dock = DockStyle.Fill };
+        var dayBoxes = new List<CheckBox>(); string[] dn = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+        for (int d = 0; d < 7; d++) { var cb = new CheckBox { Text = dn[d], AutoSize = true, Checked = d >= 1 && d <= 5, Margin = new Padding(0, 6, 8, 0), AccessibleName = "Repeat on " + dn[d] }; dayBoxes.Add(cb); }
+        var repeat = Button("Repeat at the time above"); var unrepeat = Button("Remove repeat");
+        rowR.Controls.Add(new Label { Text = "Repeat on", AutoSize = true, Margin = new Padding(0, 8, 8, 0) }); foreach (var cb in dayBoxes) rowR.Controls.Add(cb); rowR.Controls.Add(repeat); rowR.Controls.Add(unrepeat);
+        var repeatInfo = new Label { Dock = DockStyle.Fill, Font = new Font("Segoe UI", 10), Text = "No repeating plan." };
+        layout.Controls.Add(row1, 0, 0); layout.Controls.Add(row2, 0, 1); layout.Controls.Add(rowR, 0, 2); layout.Controls.Add(repeatInfo, 0, 3); layout.Controls.Add(countdown, 0, 4); layout.Controls.Add(note, 0, 5);
+        Action refreshRepeat = async () => { try { string o = await Task.Run(() => RunSchtasks(PowerPlan.QueryTaskArguments())); repeatInfo.Text = o != null && o.Contains(PowerPlan.TaskName) ? "A repeating plan is set (visible in Windows Task Scheduler as " + PowerPlan.TaskName + ")." : "No repeating plan."; } catch { repeatInfo.Text = "No repeating plan."; } };
+        repeat.Click += (s, e) => {
+            int days = 0; for (int d = 0; d < 7; d++) if (dayBoxes[d].Checked) days |= 1 << d; if (days == 0) { MessageBox.Show(this, "Pick at least one day.", "Power timer"); return; }
+            var act = action.SelectedIndex == 1 ? PowerAction.Restart : PowerAction.Shutdown;
+            if (MessageBox.Show(this, PowerPlan.Describe(act, clock.Value.Hour, clock.Value.Minute, days) + ".\r\n\r\nThis adds a Windows scheduled task. Aster gives you 60 seconds to cancel with \"shutdown /a\". Save your work before that time.\r\n\r\nContinue?", "Power timer", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) != DialogResult.OK) return;
+            string r = RunSchtasks(PowerPlan.CreateTaskArguments(act, clock.Value.Hour, clock.Value.Minute, days)); if (r == null) MessageBox.Show(this, "Windows could not create the repeating plan.", "Power timer"); else AddSessionEvent("Power timer repeat: " + PowerPlan.Describe(act, clock.Value.Hour, clock.Value.Minute, days)); refreshRepeat();
+        };
+        unrepeat.Click += (s, e) => { RunSchtasks(PowerPlan.DeleteTaskArguments()); AddSessionEvent("Power timer repeat removed"); refreshRepeat(); };
+        refreshRepeat();
         var tick = new System.Windows.Forms.Timer { Interval = 500 };
         Action refresh = () => {
             if (powerDeadline.HasValue && powerDeadline.Value <= DateTime.Now.AddSeconds(-5)) powerDeadline = null;
@@ -261,6 +293,14 @@ partial class MainWindow {
             powerDeadline = DateTime.Now.AddSeconds(seconds); powerAction = what;
             AddSessionEvent("Power timer: " + verb + " at " + when.ToString("HH:mm"));
         }
+    }
+
+    // Runs schtasks.exe and returns its output, or null if it failed.
+    string RunSchtasks(string arguments) {
+        try {
+            var info = new ProcessStartInfo(Path.Combine(Environment.SystemDirectory, "schtasks.exe"), arguments) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+            using (var p = Process.Start(info)) { string o = p.StandardOutput.ReadToEnd(); p.StandardError.ReadToEnd(); p.WaitForExit(15000); return p.ExitCode == 0 ? o : null; }
+        } catch (Exception) { return null; }
     }
 
     bool RunShutdown(string arguments) {

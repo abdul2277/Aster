@@ -80,7 +80,7 @@ internal static class OnlineUpdate
 		httpClientHandler.AllowAutoRedirect = false;
 		HttpClient httpClient = new HttpClient(httpClientHandler);
 		httpClient.Timeout = TimeSpan.FromSeconds(45.0);
-		httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Aster/2.4");
+		httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Aster/2.5");
 		return httpClient;
 	}
 

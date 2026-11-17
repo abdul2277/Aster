@@ -91,6 +91,25 @@ public static class SpaceScanner {
         if (item.Bytes > list[smallest].Bytes) list[smallest] = item;
     }
 
+    // CSV for spreadsheets. Cells starting with = + - @ (or a tab/CR) are prefixed with an apostrophe so a file named "=cmd|..." cannot run as a formula.
+    public static string CsvCell(string v) {
+        v = v ?? "";
+        if (v.Length > 0 && "=+-@\t\r".IndexOf(v[0]) >= 0) v = "'" + v;
+        return (v.IndexOfAny(new[] { ',', '"', '\r', '\n' }) >= 0) ? "\"" + v.Replace("\"", "\"\"") + "\"" : v;
+    }
+    public static string ToCsv(SpaceReport r) {
+        var b = new System.Text.StringBuilder("Kind,Size (bytes),Share %,Files,Modified,Path\r\n");
+        foreach (var f in r.TopFolders) b.Append("Folder," + f.Bytes + "," + (r.TotalBytes > 0 ? (100.0 * f.Bytes / r.TotalBytes).ToString("F2", CultureInfo.InvariantCulture) : "0") + "," + f.Files + ",," + CsvCell(f.Path) + "\r\n");
+        foreach (var f in r.LargestFiles) b.Append("File," + f.Bytes + "," + (r.TotalBytes > 0 ? (100.0 * f.Bytes / r.TotalBytes).ToString("F2", CultureInfo.InvariantCulture) : "0") + ",1," + f.Modified.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + "," + CsvCell(f.Path) + "\r\n");
+        return b.ToString();
+    }
+    // A short, shareable summary (no file names beyond the top few) for chat or email.
+    public static string Summary(SpaceReport r, int top = 5) {
+        var b = new System.Text.StringBuilder("Space report for " + r.Root + ": " + Bytes(r.TotalBytes) + " in " + r.Files + " files" + (r.Canceled ? " (partial)" : "") + "\r\n");
+        int n = 0; foreach (var f in r.TopFolders) { if (n++ >= top) break; b.AppendLine("  " + Bytes(f.Bytes).PadLeft(9) + "  " + f.Path); }
+        return b.ToString();
+    }
+
     public static string Bytes(long n) {
         if (n < 0) return "Unavailable";
         string[] units = { "B", "KB", "MB", "GB", "TB", "PB" };
@@ -154,6 +173,19 @@ public sealed class PingStats {
     public void Reset() { window.Clear(); Sent = Received = 0; Last = null; }
 }
 
+public static class PingReport {
+    public static string Text(string host, PingStats st, DateTime now, DateTime? started = null) {
+        var b = new System.Text.StringBuilder("ASTER PING REPORT\r\nHost: " + host + "\r\nCreated: " + now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) + "\r\n");
+        if (started.HasValue) b.AppendLine("Monitored for: " + (now - started.Value).ToString(@"hh\:mm\:ss", CultureInfo.InvariantCulture));
+        b.AppendLine("Sent: " + st.Sent + "   Received: " + st.Received + "   Loss: " + st.LossPercent.ToString("F1", CultureInfo.InvariantCulture) + "%");
+        b.AppendLine("Latency ms  avg " + st.Average.ToString("F1", CultureInfo.InvariantCulture) + "  min " + st.Min + "  max " + st.Max + "  jitter " + st.Jitter.ToString("F1", CultureInfo.InvariantCulture));
+        b.AppendLine("Verdict: " + st.Verdict);
+        b.AppendLine("Last " + st.Recent.Count + " replies (ms): " + string.Join(" ", st.Recent.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToArray()));
+        b.AppendLine("\r\nA snapshot of one connection at one time, not a full network test.");
+        return b.ToString();
+    }
+}
+
 public enum PowerAction { Shutdown, Restart }
 
 public static class PowerPlan {
@@ -181,6 +213,27 @@ public static class PowerPlan {
     }
 
     public const string AbortArguments = "/a";
+
+    // ---- recurring plans use the Windows Task Scheduler (schtasks.exe), so they still run when Aster is closed ----
+    public const string TaskName = "AsterPowerTimer";
+    static readonly string[] DayCodes = { "SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT" };
+    // days: bit 0 = Sunday ... bit 6 = Saturday. 127 = every day.
+    public static string DaysText(int days) {
+        if (days <= 0 || days > 127) throw new ArgumentOutOfRangeException("days");
+        var l = new List<string>(); for (int i = 0; i < 7; i++) if ((days & (1 << i)) != 0) l.Add(DayCodes[i]); return string.Join(",", l.ToArray());
+    }
+    public static string CreateTaskArguments(PowerAction action, int hour, int minute, int days) {
+        if (hour < 0 || hour > 23 || minute < 0 || minute > 59) throw new ArgumentOutOfRangeException("hour");
+        string time = hour.ToString("00", CultureInfo.InvariantCulture) + ":" + minute.ToString("00", CultureInfo.InvariantCulture);
+        string run = "shutdown.exe " + (action == PowerAction.Restart ? "/r" : "/s") + " /t 60 /c \"Scheduled by Aster. Run shutdown /a within 60 seconds to cancel.\"";
+        string sched = days == 127 ? "/sc DAILY" : "/sc WEEKLY /d " + DaysText(days);
+        return "/create " + sched + " /st " + time + " /tn " + TaskName + " /tr \"" + run.Replace("\"", "\\\"") + "\" /f";
+    }
+    public static string DeleteTaskArguments() { return "/delete /tn " + TaskName + " /f"; }
+    public static string QueryTaskArguments() { return "/query /tn " + TaskName + " /fo LIST"; }
+    public static string Describe(PowerAction action, int hour, int minute, int days) {
+        return (action == PowerAction.Restart ? "Restart" : "Shut down") + " at " + hour.ToString("00", CultureInfo.InvariantCulture) + ":" + minute.ToString("00", CultureInfo.InvariantCulture) + " " + (days == 127 ? "every day" : "on " + DaysText(days).Replace(",", ", "));
+    }
 
     public static string Countdown(TimeSpan left) {
         if (left < TimeSpan.Zero) left = TimeSpan.Zero;
