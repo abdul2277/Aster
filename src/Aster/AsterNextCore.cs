@@ -314,7 +314,23 @@ public static class HomeModel {
         string s = char.ToUpperInvariant(why[0][0]) + why[0].Substring(1); for (int i = 1; i < why.Count; i++) s += (i == why.Count - 1 ? " and " : ", ") + why[i];
         return s + (l == HomeLevel.Attention ? ". Worth a look." : ".");
     }
-    public static string Greeting(int hour) { return hour < 5 ? "Working late" : hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"; }
+    public enum DayPart { Night, Dawn, Morning, Afternoon, Evening }
+    // 22-04 night, 05-07 dawn, 08-11 morning, 12-17 afternoon, 18-21 evening. Hours outside 0-23 wrap safely.
+    public static DayPart Part(int hour) { hour = ((hour % 24) + 24) % 24; return hour >= 22 || hour < 5 ? DayPart.Night : hour < 8 ? DayPart.Dawn : hour < 12 ? DayPart.Morning : hour < 18 ? DayPart.Afternoon : DayPart.Evening; }
+    public static string Greeting(int hour) { switch (Part(hour)) { case DayPart.Night: return hour % 24 >= 22 ? "Good night" : "Working late"; case DayPart.Dawn: return "Early start"; case DayPart.Morning: return "Good morning"; case DayPart.Afternoon: return "Good afternoon"; default: return "Good evening"; } }
+    public static string Emoji(int hour) { switch (Part(hour)) { case DayPart.Night: return "🌙"; case DayPart.Dawn: return "🌅"; case DayPart.Morning: return "☀"; case DayPart.Afternoon: return "🌤"; default: return "🌆"; } }
+    // One time-aware idea: what to do right now, and the tool that does it. Rotates with the day of the year so it does not nag with the same line.
+    public static KeyValuePair<string, string> Suggestion(int hour, int dayOfYear, bool pcBusy) {
+        string[][] pool;
+        switch (Part(hour)) {
+            case DayPart.Dawn: case DayPart.Morning: pool = new[] { new[] { "Start the day with a quick health check.", "System check" }, new[] { "Plan today: set a reminder or two.", "Maintenance planner" }, new[] { "Make sure the connection is solid before your first call.", "Ping monitor" } }; break;
+            case DayPart.Afternoon: pool = new[] { new[] { "Find what is filling your drive.", "Space finder" }, new[] { "Clear your head with a focus session.", "Focus timer" }, new[] { "Jot down what you have learned today.", "Notebook" } }; break;
+            case DayPart.Evening: pool = new[] { new[] { "Wind down: schedule the PC to shut itself off later.", "Power timer" }, new[] { "Save a report of today's connection quality.", "Ping monitor" }, new[] { "Review what happened today.", "Session timeline" } }; break;
+            default: pool = new[] { new[] { "Late night? Set the PC to shut down so you can stop worrying about it.", "Power timer" }, new[] { "Pause live monitoring to keep things quiet.", "Preferences" } }; break;
+        }
+        if (pcBusy && Part(hour) != DayPart.Night) return new KeyValuePair<string, string>("Your PC is busy right now: see what is using it.", "Processes");
+        var pick = pool[((dayOfYear % pool.Length) + pool.Length) % pool.Length]; return new KeyValuePair<string, string>(pick[0], pick[1]);
+    }
     public static readonly string[] QuickTools = { "Space finder", "Ping monitor", "Power timer", "System check", "Windows advisor", "Tools hub" };
 }
 

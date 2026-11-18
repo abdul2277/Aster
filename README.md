@@ -2,9 +2,13 @@
 Aster is a work-in-progress task manager and system toolkit for Windows.
 
 ## Download
-**[Aster-Windows-v2.7.zip](Aster-Windows-v2.7.zip)**: extract the whole ZIP and run `Aster.exe`. If you already have Aster 2.3 to 2.6, open **Update Aster**, choose the ZIP, then switch to the updated version. Your settings are kept.
+**[Aster-Windows-v2.8.zip](Aster-Windows-v2.8.zip)**: extract the whole ZIP and run `Aster.exe`. If you already have Aster 2.3 to 2.7, open **Update Aster**, choose the ZIP, then switch to the updated version. Your settings are kept.
 
-Requires Windows 10/11 (64-bit) with .NET Framework 4.x. `Aster.exe` in this folder is the same 2.7 build.
+Requires Windows 10/11 (64-bit) with .NET Framework 4.x. `Aster.exe` in this folder is the same 2.8 build.
+
+## New in 2.8
+
+- **Home that knows the time:** greeting and emoji follow the day (early start, morning, afternoon, evening, night) and update live, plus a "Right now" suggestion with a button that opens the tool. It rotates daily and points to Processes when your PC is busy.
 
 ## New in 2.7
 
@@ -32,7 +36,7 @@ Requires Windows 10/11 (64-bit) with .NET Framework 4.x. `Aster.exe` in this fol
 All 2.3 features (Horizon desktop, Desktop mods, online updates, monitoring, hardware, repair and productivity tools) are unchanged.
 
 ## Repository layout
-- `Aster-Windows-v2.7.zip`: the full portable package (app, Python runtime for alerts, WebView2, AuraWallpaper)
+- `Aster-Windows-v2.8.zip`: the full portable package (app, Python runtime for alerts, WebView2, AuraWallpaper)
 - `src/`: C# source for Aster 2.4 (`Aster.csproj`, .NET Framework 4.8)
 - `tests/CoreTests.cs`: automated checks for the 2.4 and 2.5 tool logic
 - `tools/make_package.py`: builds an update-ready ZIP with a `release.json` manifest

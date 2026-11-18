@@ -37,12 +37,16 @@ sealed class HomeView : UserControl {
     public HomeLevel LastLevel { get; private set; } public int QuickCount { get { return quick.Controls.Count; } } public int RecentCount { get { return recentRow.Controls.Count; } }
     public string VerdictText { get { return verdict.Text; } } public PictureBox Picture;
 
-    public HomeView(Color tileBack, Color fore, Color muted, Color accent, string name, Func<IList<string>> recent, Func<string, bool> exists, Action<string> open, Control extra) {
+    readonly Func<DateTime> clock; readonly string who; readonly Panel nowCard = new Panel { Height = 70, Width = 540, Margin = new Padding(0, 0, 0, 4), Visible = false }; readonly Label nowIcon = new Label(), nowText = new Label(); readonly Button nowGo = new Button();
+    int shownHour = -1; string nowTool = ""; bool busyNow;
+    public string GreetingText { get { return greeting.Text; } } public string SuggestionText { get { return nowText.Text; } } public string SuggestionTool { get { return nowTool; } } public bool SuggestionVisible { get { return nowCard.Visible; } }
+    public HomeView(Color tileBack, Color fore, Color muted, Color accent, string name, Func<IList<string>> recent, Func<string, bool> exists, Action<string> open, Control extra, Func<DateTime> clock = null) {
+        this.clock = clock ?? (() => DateTime.Now);
         this.tileBack = tileBack; this.fore = fore; this.muted = muted; this.accent = accent; this.recent = recent; this.exists = exists; this.open = open; tileHover = ControlPaint.Light(tileBack, .25f);
         Dock = DockStyle.Fill; AutoScroll = true; ForeColor = fore; DoubleBuffered = true;
         var col = new FlowLayoutPanel { FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoSize = true, Dock = DockStyle.Top, Padding = new Padding(4, 4, 4, 16) };
-        string who = string.IsNullOrWhiteSpace(name) ? "" : ", " + name.Trim();
-        greeting = new Label { Text = HomeModel.Greeting(DateTime.Now.Hour) + who, AutoSize = true, Font = new Font("Segoe UI", 22, FontStyle.Bold), ForeColor = fore, UseMnemonic = false };
+        who = string.IsNullOrWhiteSpace(name) ? "" : ", " + name.Trim();
+        greeting = new Label { Text = HomeModel.Emoji(this.clock().Hour) + "  " + HomeModel.Greeting(this.clock().Hour) + who, AutoSize = true, Font = new Font("Segoe UI", 22, FontStyle.Bold), ForeColor = fore, UseMnemonic = false };
         verdict = new Label { Text = "Reading your PC…", AutoSize = true, Font = new Font("Segoe UI", 12), ForeColor = muted, Margin = new Padding(3, 0, 0, 14) };
         foreach (var m in new[] { cpu, ram, disk }) { m.Card = tileBack; m.Fore = fore; m.Muted = muted; m.Fill = Color.FromArgb(76, 217, 100); }
         var meters = new FlowLayoutPanel { AutoSize = true, WrapContents = true, Margin = new Padding(0) }; meters.Controls.AddRange(new Control[] { cpu, ram, disk });
@@ -50,9 +54,14 @@ sealed class HomeView : UserControl {
         var art = ArtImage.Get(); if (art != null) { Picture = new PictureBox { Width = 84, Height = 84, SizeMode = PictureBoxSizeMode.Zoom, Image = art, Margin = new Padding(0, 0, 14, 8), BackColor = Color.Transparent, AccessibleName = "Aster logo", TabStop = false }; head.Controls.Add(Picture); }
         var words = new FlowLayoutPanel { AutoSize = true, WrapContents = false, FlowDirection = FlowDirection.TopDown, Margin = new Padding(0, 6, 0, 0) }; words.Controls.Add(greeting); words.Controls.Add(verdict); head.Controls.Add(words);
         col.Controls.Add(head); col.Controls.Add(meters);
+        nowCard.BackColor = tileBack; nowIcon.SetBounds(0, 0, 54, 70); nowIcon.Font = new Font("Segoe UI Emoji", 20); nowIcon.TextAlign = ContentAlignment.MiddleCenter; nowIcon.ForeColor = fore;
+        nowText.SetBounds(54, 0, 330, 70); nowText.Font = new Font("Segoe UI", 10.5f); nowText.TextAlign = ContentAlignment.MiddleLeft; nowText.ForeColor = fore; nowText.UseMnemonic = false;
+        nowGo.SetBounds(392, 19, 136, 32); nowGo.FlatStyle = FlatStyle.Flat; nowGo.FlatAppearance.BorderSize = 0; nowGo.BackColor = accent; nowGo.ForeColor = Color.FromArgb(16, 19, 26); nowGo.UseMnemonic = false; nowGo.AccessibleName = "Open the suggested tool";
+        nowGo.Click += (s, e) => { if (nowTool.Length > 0) this.open(nowTool); }; nowCard.Controls.AddRange(new Control[] { nowIcon, nowText, nowGo });
+        col.Controls.Add(Header("RIGHT NOW")); col.Controls.Add(nowCard);
         col.Controls.Add(Header("QUICK TOOLS")); col.Controls.Add(quick); col.Controls.Add(Header("RECENT")); col.Controls.Add(recentRow);
         if (extra != null) { extra.Margin = new Padding(0, 18, 0, 0); col.Controls.Add(extra); }
-        Controls.Add(col); BuildTiles();
+        Controls.Add(col); BuildTiles(); RefreshTime(true);
     }
     Label Header(string t) { return new Label { Text = t, AutoSize = true, ForeColor = muted, Font = new Font("Segoe UI", 8, FontStyle.Bold), Margin = new Padding(2, 12, 0, 6), UseMnemonic = false }; }
     Control Tile(string name) {
@@ -74,13 +83,22 @@ sealed class HomeView : UserControl {
     }
     static Color ForLevel(double pct, double busy, double bad, bool invert) { double v = invert ? 100 - pct : pct; return v >= bad ? Color.FromArgb(255, 107, 107) : v >= busy ? Color.FromArgb(255, 179, 71) : Color.FromArgb(76, 217, 100); }
     // cpu / ram in percent; freeDiskPct < 0 means unknown.
+    // Re-reads the clock. Cheap enough to call every second: it only changes anything when the hour changes or the PC becomes busy / calm.
+    public void RefreshTime(bool force) {
+        var now = clock(); bool busy = busyNow; if (!force && now.Hour == shownHour && busy == lastBusyShown) return;
+        shownHour = now.Hour; lastBusyShown = busy; greeting.Text = HomeModel.Emoji(now.Hour) + "  " + HomeModel.Greeting(now.Hour) + who;
+        var sg = HomeModel.Suggestion(now.Hour, now.DayOfYear, busy); nowTool = exists(sg.Value) ? sg.Value : ""; nowCard.Visible = nowTool.Length > 0;
+        nowIcon.Text = HubModel.Icon(nowTool); nowText.Text = sg.Key; nowGo.Text = "Open " + nowTool;
+    }
+    bool lastBusyShown;
     public void SetReadings(double cpuPct, double ramPct, double freeDiskPct) {
+        busyNow = cpuPct >= 70 || ramPct >= 80;
         cpu.Value = cpuPct; cpu.Text = cpuPct.ToString("F0", CultureInfo.InvariantCulture) + "%"; cpu.Fill = ForLevel(cpuPct, 70, 90, false);
         ram.Value = ramPct; ram.Text = ramPct.ToString("F0", CultureInfo.InvariantCulture) + "%"; ram.Fill = ForLevel(ramPct, 80, 92, false);
         disk.Value = Math.Max(0, freeDiskPct); disk.Text = freeDiskPct < 0 ? "unknown" : freeDiskPct.ToString("F0", CultureInfo.InvariantCulture) + "%"; disk.Fill = freeDiskPct < 0 ? Color.Gray : ForLevel(freeDiskPct, 85, 92, true);
         LastLevel = HomeModel.Level(cpuPct, ramPct, freeDiskPct); verdict.Text = HomeModel.Verdict(cpuPct, ramPct, freeDiskPct);
         verdict.ForeColor = LastLevel == HomeLevel.Good ? muted : LastLevel == HomeLevel.Busy ? Color.FromArgb(255, 179, 71) : Color.FromArgb(255, 107, 107);
-        cpu.Invalidate(); ram.Invalidate(); disk.Invalidate();
+        RefreshTime(false); cpu.Invalidate(); ram.Invalidate(); disk.Invalidate();
     }
 }
 
