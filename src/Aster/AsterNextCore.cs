@@ -256,7 +256,7 @@ public static class HubModel {
         {"Summary","📊"},{"Performance","⚡"},{"Processes","🧮"},{"CPU specs","🧠"},{"GPU","🎮"},{"Storage specs","💽"},{"System info","ℹ"},{"Disk space","📦"},{"Space finder","🔍"},
         {"Network lab","🌐"},{"Ping monitor","📶"},{"Hardware report","📝"},{"Update Aster","⬆"},{"System check","🩺"},{"Windows advisor","🤖"},{"Backup center","💾"},{"Help center","❓"},
         {"Startup apps","🚀"},{"Installed apps","🗂"},{"Maintenance planner","🗓"},{"Command Center","🧭"},{"Notebook","📓"},{"Checklist","✅"},{"Focus","🎯"},{"Focus timer","⏱"},
-        {"Power timer","⏻"},{"Video player","🎬"},{"Themes","🎨"},{"Preferences","⚙"},{"Performance alerts","🔔"},{"Memory specs","🧩"},{"Services","🛠"},{"Drivers","🔧"},{"Session timeline","🕘"},{"Performance compare","⚖"},{"Air Defense feed","🛡"},{"Compact monitor","🔲"},{"Insights","💡"},{"App history","📜"},{"Flight recorder","✈"},{"Motherboard & BIOS","🧱"},{"Network adapters","🔌"},{"Hardware compare","🆚"},{"Diagnostics bundle","📦"},{"Recovery toolbox","🧰"},{"Connections","🔗"},{"Users","👤"},{"Horizon desktop","🪟"},{"Desktop mods","🧩"},{"Theme studio","🖌"},{"Home layout","🏠"},{"Wallpaper studio","🖼"},{"Playground","🎲"} };
+        {"Power timer","⏻"},{"Video player","🎬"},{"Themes","🎨"},{"Preferences","⚙"},{"Performance alerts","🔔"},{"Memory specs","🧩"},{"Services","🛠"},{"Drivers","🔧"},{"Tools hub","🧰"},{"Session timeline","🕘"},{"Performance compare","⚖"},{"Air Defense feed","🛡"},{"Compact monitor","🔲"},{"Insights","💡"},{"App history","📜"},{"Flight recorder","✈"},{"Motherboard & BIOS","🧱"},{"Network adapters","🔌"},{"Hardware compare","🆚"},{"Diagnostics bundle","📦"},{"Recovery toolbox","🧰"},{"Connections","🔗"},{"Users","👤"},{"Horizon desktop","🪟"},{"Desktop mods","🧩"},{"Theme studio","🖌"},{"Home layout","🏠"},{"Wallpaper studio","🖼"},{"Playground","🎲"} };
     public static string Icon(string name) { string i; return Icons.TryGetValue(name ?? "", out i) ? i : "▫"; }
 
     // Matches every word of the query against the tool name and its description. Name matches rank first.
@@ -295,6 +295,47 @@ public static class HubModel {
             if (o.Count >= max) break; if (string.IsNullOrWhiteSpace(n) || n == "Tools hub" || !exists(n) || (simple && IsAdvanced(n)) || !seen.Add(n)) continue; o.Add(n);
         }
         return o;
+    }
+}
+
+// v2.7 — Home screen verdicts and the crash safety net.
+public enum HomeLevel { Good, Busy, Attention }
+public static class HomeModel {
+    // One plain sentence about the PC, from three numbers. freeDiskPct < 0 means "unknown".
+    public static HomeLevel Level(double cpu, double ram, double freeDiskPct) {
+        if (cpu >= 90 || ram >= 92 || (freeDiskPct >= 0 && freeDiskPct < 8)) return HomeLevel.Attention;
+        if (cpu >= 70 || ram >= 80 || (freeDiskPct >= 0 && freeDiskPct < 15)) return HomeLevel.Busy;
+        return HomeLevel.Good;
+    }
+    public static string Verdict(double cpu, double ram, double freeDiskPct) {
+        var l = Level(cpu, ram, freeDiskPct); var why = new List<string>();
+        if (cpu >= 70) why.Add("the processor is working hard"); if (ram >= 80) why.Add("memory is getting full"); if (freeDiskPct >= 0 && freeDiskPct < 15) why.Add("the system drive is running low on space");
+        if (l == HomeLevel.Good) return "Everything looks healthy.";
+        string s = char.ToUpperInvariant(why[0][0]) + why[0].Substring(1); for (int i = 1; i < why.Count; i++) s += (i == why.Count - 1 ? " and " : ", ") + why[i];
+        return s + (l == HomeLevel.Attention ? ". Worth a look." : ".");
+    }
+    public static string Greeting(int hour) { return hour < 5 ? "Working late" : hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"; }
+    public static readonly string[] QuickTools = { "Space finder", "Ping monitor", "Power timer", "System check", "Windows advisor", "Tools hub" };
+}
+
+public static class CrashReport {
+    // Removes the Windows user name from paths so a report can be shared safely: C:\Users\alice\x -> C:\Users\<user>\x
+    public static string Redact(string text) {
+        if (string.IsNullOrEmpty(text)) return text ?? "";
+        var t = System.Text.RegularExpressions.Regex.Replace(text, @"(?i)([A-Z]:\\Users\\)[^\\/\r\n:*?""<>|]+", "$1<user>");
+        t = System.Text.RegularExpressions.Regex.Replace(t, @"(?i)(/home/|/Users/)[^/\r\n]+", "$1<user>");
+        string name = Environment.UserName; if (!string.IsNullOrEmpty(name) && name.Length > 2) t = t.Replace(name, "<user>");
+        return t;
+    }
+    public static string Build(Exception ex, string version, DateTime now, string os, string page) {
+        var b = new System.Text.StringBuilder("ASTER CRASH REPORT\r\nVersion: " + version + "\r\nTime: " + now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) + "\r\nWindows: " + os + "\r\nPage: " + (string.IsNullOrEmpty(page) ? "(unknown)" : page) + "\r\n\r\n");
+        int depth = 0; for (var e = ex; e != null && depth < 5; e = e.InnerException, depth++) { b.AppendLine((depth == 0 ? "" : "Caused by: ") + e.GetType().FullName + ": " + e.Message); string st = e.StackTrace; if (st != null) b.AppendLine(st.Length > 3000 ? st.Substring(0, 3000) + " ..." : st); b.AppendLine(); }
+        b.AppendLine("No personal files or settings are included. Your Windows user name was removed from paths.");
+        return Redact(b.ToString());
+    }
+    // Keeps the newest N crash files so the folder never grows without limit.
+    public static void Trim(string dir, int keep) {
+        try { var files = new DirectoryInfo(dir).GetFiles("crash-*.txt").OrderByDescending(f => f.Name).ToList(); for (int i = keep; i < files.Count; i++) { try { files[i].Delete(); } catch { } } } catch { }
     }
 }
 }

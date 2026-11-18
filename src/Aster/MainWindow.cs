@@ -556,7 +556,17 @@ internal partial class MainWindow : Form
 		SetupFun();
 		SetupGreeting();
 		SetupPersonalWorkspace();
-		Navigate("Summary");
+		Navigate("Command Center");
+		base.Shown += delegate
+		{
+			if (!preferences.TourSeen)
+			{
+				preferences.TourSeen = true;
+				SavePreferences();
+				using WelcomeTour welcomeTour = new WelcomeTour(this.panel, Color.FromArgb(204, 215, 229), muted, Color.FromArgb(94, 196, 214));
+				welcomeTour.ShowDialog(this);
+			}
+		};
 		SetupShortcuts();
 		StartSample();
 		LoadHardware();
@@ -606,6 +616,7 @@ internal partial class MainWindow : Form
 
 	private void Navigate(string name)
 	{
+		CrashLog.Page = name;
 		DetachAirDefense();
 		RememberTool(name);
 		page = name;
@@ -1772,7 +1783,7 @@ internal partial class MainWindow : Form
 				}
 				else
 				{
-					onlineStatus = "You're up to date. Installed Aster 2.6.\r\nLast checked: " + DateTime.Now.ToString("g");
+					onlineStatus = "You're up to date. Installed Aster 2.7.\r\nLast checked: " + DateTime.Now.ToString("g");
 				}
 			}
 			catch (UpdateFeedMissingException)
@@ -1952,7 +1963,7 @@ internal partial class MainWindow : Form
 				}
 			};
 		}
-		sub.Text = "Installed Aster 2.6 · automatic download and installation";
+		sub.Text = "Installed Aster 2.7 · automatic download and installation";
 		FlowLayoutPanel flowLayoutPanel = FeatureFlow("Updates made simple.", "Check for a new version, choose Update now, and Aster handles the rest. No ZIP to select or files to copy.");
 		TextBox state = new TextBox
 		{
@@ -2491,6 +2502,10 @@ internal partial class MainWindow : Form
 		{
 			commandStatus.Text = CommandStatus();
 		}
+		if (homeView != null && !homeView.IsDisposed && current != null)
+		{
+			homeView.SetReadings(current.Cpu, current.MemoryPercent, SystemDriveFreePct());
+		}
 	}
 
 	private void AddPressure(DateTime time, string metric, double value, string advice)
@@ -2519,7 +2534,7 @@ internal partial class MainWindow : Form
 
 	private string CommandStatus()
 	{
-		return (paused ? "Monitoring paused" : "Monitoring live") + "  •  " + ((current == null) ? "Waiting for readings" : ("CPU " + current.Cpu.ToString("F0") + "%  /  RAM " + current.MemoryPercent.ToString("F0") + "%")) + "\r\n" + (preferences.PressureEnabled ? "Performance alerts on" : "Performance alerts off") + "  •  " + unreadPressure + " unread alerts  •  Aster 2.6\r\n" + MaintenanceSummary();
+		return (paused ? "Monitoring paused" : "Monitoring live") + "  •  " + ((current == null) ? "Waiting for readings" : ("CPU " + current.Cpu.ToString("F0") + "%  /  RAM " + current.MemoryPercent.ToString("F0") + "%")) + "\r\n" + (preferences.PressureEnabled ? "Performance alerts on" : "Performance alerts off") + "  •  " + unreadPressure + " unread alerts  •  Aster 2.7\r\n" + MaintenanceSummary();
 	}
 
 	private FlowLayoutPanel FeatureFlow(string title, string description)
@@ -2549,54 +2564,34 @@ internal partial class MainWindow : Form
 		return flowLayoutPanel2;
 	}
 
+	private HomeView homeView;
+
+	private double sysDriveFree = -1.0;
+
+	private DateTime sysDriveAt = DateTime.MinValue;
+
+	private double SystemDriveFreePct()
+	{
+		if ((DateTime.Now - sysDriveAt).TotalSeconds < 30.0)
+		{
+			return sysDriveFree;
+		}
+		sysDriveAt = DateTime.Now;
+		try
+		{
+			DriveInfo driveInfo = new DriveInfo(Path.GetPathRoot(Environment.SystemDirectory));
+			sysDriveFree = ((driveInfo.IsReady && driveInfo.TotalSize > 0) ? (100.0 * (double)driveInfo.AvailableFreeSpace / (double)driveInfo.TotalSize) : (-1.0));
+		}
+		catch
+		{
+			sysDriveFree = -1.0;
+		}
+		return sysDriveFree;
+	}
+
 	private void BuildCommandCenter()
 	{
-		sub.Text = "Your daily launchpad · live status, focused actions and troubleshooting";
-		FlowLayoutPanel flowLayoutPanel = FeatureFlow("Make room for what matters.", "Jump into a workflow, check your system, or give your desktop a new mood.");
-		commandStatus = new Label
-		{
-			Text = CommandStatus(),
-			AutoSize = true,
-			Font = new Font("Segoe UI", 13f),
-			Margin = new Padding(0, 8, 0, 22)
-		};
-		flowLayoutPanel.Controls.Add(commandStatus);
-		string[][] array = new string[4][]
-		{
-			new string[5] { "PLAN & REVIEW", "Maintenance planner", "Performance compare", "Session timeline", "Diagnostics bundle" },
-			new string[5] { "KEEP THINGS SMOOTH", "Performance alerts", "Processes", "Diagnostics bundle", "Windows advisor" },
-			new string[5] { "GET INTO YOUR FLOW", "Focus timer", "Notebook", "Checklist", "Network lab" },
-			new string[5] { "MAKE IT YOURS", "Themes", "Wallpaper studio", "Video player", "Home layout" }
-		};
-		foreach (string[] array2 in array)
-		{
-			flowLayoutPanel.Controls.Add(new Label
-			{
-				Text = array2[0],
-				AutoSize = true,
-				Font = new Font("Segoe UI", 10f, FontStyle.Bold),
-				Margin = new Padding(0, 16, 0, 8)
-			});
-			FlowLayoutPanel flowLayoutPanel2 = new FlowLayoutPanel();
-			flowLayoutPanel2.Width = 760;
-			flowLayoutPanel2.Height = 100;
-			flowLayoutPanel2.WrapContents = true;
-			FlowLayoutPanel flowLayoutPanel3 = flowLayoutPanel2;
-			flowLayoutPanel.Controls.Add(flowLayoutPanel3);
-			foreach (string item in array2.Skip(1))
-			{
-				string target = item;
-				Button button = Button(target + "  →");
-				button.AutoSize = false;
-				button.Width = 175;
-				button.Height = 70;
-				button.Click += delegate
-				{
-					Navigate(target);
-				};
-				flowLayoutPanel3.Controls.Add(button);
-			}
-		}
+		sub.Text = "How your PC is doing, and the tools you reach for most";
 		Button toggle = Button(paused ? "Resume live monitoring" : "Pause live monitoring");
 		toggle.Click += delegate
 		{
@@ -2605,16 +2600,28 @@ internal partial class MainWindow : Form
 			toggle.Text = (paused ? "Resume live monitoring" : "Pause live monitoring");
 			cpuPressure.Reset();
 			ramPressure.Reset();
-			commandStatus.Text = CommandStatus();
 			UpdateView();
 		};
-		flowLayoutPanel.Controls.Add(toggle);
-		flowLayoutPanel.Controls.Add(new Label
+		FlowLayoutPanel extra = new FlowLayoutPanel();
+		extra.AutoSize = true;
+		extra.Controls.Add(toggle);
+		extra.Controls.Add(new Label
 		{
 			Text = "Ctrl+K  Find any tool     •     F11  Distraction-free view",
 			AutoSize = true,
-			Margin = new Padding(0, 20, 0, 0)
+			ForeColor = muted,
+			Margin = new Padding(10, 10, 0, 0)
 		});
+		homeView = new HomeView(panel, Color.FromArgb(204, 215, 229), muted, Color.FromArgb(94, 196, 214), preferences.DisplayName, () => recentTools, (string n) => buttons.ContainsKey(n), delegate(string n)
+		{
+			Navigate(n);
+		}, extra);
+		content.Controls.Add(homeView);
+		if (current != null)
+		{
+			homeView.SetReadings(current.Cpu, current.MemoryPercent, SystemDriveFreePct());
+		}
+		ApplyAppTheme();
 	}
 
 	private NumericUpDown PressureNumber(FlowLayoutPanel flow, string label, int min, int max, int value)
@@ -2836,7 +2843,7 @@ internal partial class MainWindow : Form
 			content.Controls.Add(button2);
 			return;
 		}
-		sub.Text = "Installed: Aster 2.6 · install a newer downloaded package";
+		sub.Text = "Installed: Aster 2.7 · install a newer downloaded package";
 		string selected = null;
 		string installed = installedUpdateFolder;
 		UpdatePackage reviewed = null;
@@ -2875,7 +2882,7 @@ internal partial class MainWindow : Form
 			ScrollBars = ScrollBars.Vertical,
 			Width = 740,
 			Height = 230,
-			Text = "Current version: 2.6\r\nChoose an update package to begin."
+			Text = "Current version: 2.7\r\nChoose an update package to begin."
 		};
 		if (installed != null)
 		{

@@ -62,6 +62,8 @@ internal class WorkspaceOptions
 
 	public bool SimpleMode;
 
+	public bool TourSeen;
+
 	public List<string> Pins = new List<string> { "Summary", "Windows advisor", "Processes" };
 
 	public static string FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Pulse", "Workspace.json");

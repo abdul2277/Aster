@@ -51,6 +51,7 @@ internal static class Program
 			}
 		}
 		Application.EnableVisualStyles();
+		CrashLog.Install();
 		Application.SetCompatibleTextRenderingDefault(defaultValue: false);
 		if (args.Length == 2 && args[0] == "--repair")
 		{
