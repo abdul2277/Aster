@@ -1,0 +1,6 @@
+config.json
+*.sqlite3
+*.sqlite3-*
+*.lock
+__pycache__/
+.env

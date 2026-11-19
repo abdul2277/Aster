@@ -1,0 +1,52 @@
+﻿using System;using System.IO;using System.Net;using System.Net.Http;using System.Security.Cryptography;using System.Text;using System.Text.RegularExpressions;using System.Threading;using System.Threading.Tasks;using System.Web.Script.Serialization;using System.Windows.Forms;using System.Drawing;using System.Diagnostics;
+namespace Aster {
+class SignedUpdate {public string Payload,Signature;}
+class OnlineRelease {public string AppId,Version,Url,Sha256,Notes;public long Size;}
+static class OnlineUpdate {
+ public const string Feed="https://github.com/abdul2277/Aster/releases/latest/download/aster-update.json";
+ public const long Limit=250L*1024*1024;
+ internal static Func<HttpClient> TestClientFactory;
+ public static Uri Https(string value){Uri uri;if(!Uri.TryCreate(value,UriKind.Absolute,out uri)||uri.Scheme!="https"||uri.UserInfo.Length>0||!uri.IsDefaultPort)throw new InvalidDataException("The update address must use HTTPS.");return uri;}
+ public static OnlineRelease Verify(string json){
+  if(json.Length>65536)throw new InvalidDataException("Update information is too large.");
+  var serializer=new JavaScriptSerializer{MaxJsonLength=65536};var envelope=serializer.Deserialize<SignedUpdate>(json);if(envelope==null||envelope.Payload==null||envelope.Signature==null)throw new InvalidDataException("Missing release signature.");
+  byte[] payload=Convert.FromBase64String(envelope.Payload),signature=Convert.FromBase64String(envelope.Signature);
+  using(var rsa=new RSACryptoServiceProvider()){rsa.PersistKeyInCsp=false;using(var reader=new StreamReader(typeof(OnlineUpdate).Assembly.GetManifestResourceStream("AsterUpdateKey")))rsa.FromXmlString(reader.ReadToEnd());if(!rsa.VerifyData(payload,CryptoConfig.MapNameToOID("SHA256"),signature))throw new InvalidDataException("Release signature is not trusted.");}
+  var release=serializer.Deserialize<OnlineRelease>(new UTF8Encoding(false,true).GetString(payload));Version version;
+  if(release==null||release.AppId!="aster.desktop"||!Version.TryParse(release.Version,out version)||release.Size<=0||release.Size>Limit||release.Sha256==null||!Regex.IsMatch(release.Sha256,"^[a-fA-F0-9]{64}$")||(release.Notes??"").Length>4000)throw new InvalidDataException("Invalid release information.");
+  var uri=Https(release.Url);if(uri.Host!="github.com"||!uri.AbsolutePath.StartsWith("/abdul2277/Aster/releases/download/",StringComparison.Ordinal))throw new InvalidDataException("Release must belong to the configured Aster repository.");return release;
+ }
+ static HttpClient Client(){if(TestClientFactory!=null)return TestClientFactory();ServicePointManager.SecurityProtocol|=SecurityProtocolType.Tls12;var client=new HttpClient(new HttpClientHandler{AllowAutoRedirect=false});client.Timeout=TimeSpan.FromSeconds(45);client.DefaultRequestHeaders.UserAgent.ParseAdd("Aster/"+AsterUpdate.CurrentVersion);return client;}
+ static async Task<HttpResponseMessage> Get(HttpClient client,Uri uri,CancellationToken token){for(int i=0;i<6;i++){var response=await client.GetAsync(uri,HttpCompletionOption.ResponseHeadersRead,token);int code=(int)response.StatusCode;if(code>=300&&code<400){var location=response.Headers.Location;response.Dispose();if(location==null)throw new IOException("Update redirect is missing its destination.");uri=Https(new Uri(uri,location).AbsoluteUri);continue;}try{response.EnsureSuccessStatusCode();return response;}catch{response.Dispose();throw;}}throw new IOException("Too many update redirects.");}
+ public static async Task<OnlineRelease> Check(CancellationToken token){using(var client=Client())using(var response=await Get(client,Https(Feed),token))using(var input=await response.Content.ReadAsStreamAsync())using(var output=new MemoryStream()){byte[] buffer=new byte[8192];int n;while((n=await input.ReadAsync(buffer,0,buffer.Length,token))>0){if(output.Length+n>65536)throw new IOException("Update information exceeds its size limit.");output.Write(buffer,0,n);}return Verify(new UTF8Encoding(false,true).GetString(output.ToArray()));}}
+ public static async Task<string> Download(OnlineRelease release,string folder,IProgress<int> progress,CancellationToken token){
+  Directory.CreateDirectory(folder);string path=Path.Combine(folder,"Aster-"+Guid.NewGuid().ToString("N")+".zip");
+  try{using(var client=Client())using(var response=await Get(client,Https(release.Url),token)){if(response.Content.Headers.ContentLength.HasValue&&response.Content.Headers.ContentLength.Value!=release.Size)throw new IOException("Download size does not match the signed release.");using(var input=await response.Content.ReadAsStreamAsync())using(var output=new FileStream(path,FileMode.CreateNew,FileAccess.Write,FileShare.None,65536,true)){long total=0;byte[] buffer=new byte[65536];int n;while((n=await input.ReadAsync(buffer,0,buffer.Length,token))>0){total+=n;if(total>release.Size)throw new IOException("Download exceeds its signed size.");await output.WriteAsync(buffer,0,n,token);if(progress!=null)progress.Report((int)(total*100/release.Size));}if(total!=release.Size)throw new IOException("Download was incomplete.");}}
+   token.ThrowIfCancellationRequested();using(var stream=File.OpenRead(path))if(!string.Equals(AsterUpdate.Hash(stream),release.Sha256,StringComparison.OrdinalIgnoreCase))throw new IOException("Downloaded update failed its integrity check.");return path;
+  }catch{if(File.Exists(path))File.Delete(path);throw;}
+ }
+}
+partial class MainWindow {
+ int onlineProgress;OnlineRelease onlineRelease;string onlineStatus="Ready to check GitHub for a newer Aster release.";CancellationTokenSource updateCancellation;
+ void BuildUpdates(){
+  if(!updateCloseHook){updateCloseHook=true;FormClosing+=(s,e)=>{if(updateBusy){e.Cancel=true;MessageBox.Show(this,"An update is running. Cancel the download or wait for installation to finish before closing.");}};}
+  sub.Text="Installed Aster "+AsterUpdate.CurrentVersion+" · online updates from abdul2277/Aster";
+  var flow=FeatureFlow("Keep Aster up to date.","Check for a new version, download it inside Aster, then restart when you are ready. Your saved workspace is kept.");
+  var state=new TextBox{Text=onlineStatus,ReadOnly=true,Multiline=true,Width=740,Height=170,ScrollBars=ScrollBars.Vertical};var progress=new ProgressBar{Width=740,Height=20};
+  var actions=new FlowLayoutPanel{Width=760,Height=48};flow.Controls.Add(actions);flow.Controls.Add(progress);flow.Controls.Add(state);
+  var check=Button("Check for updates");var install=Button("Download & install");var cancel=Button("Cancel download");var restart=Button("Restart into update");foreach(var b in new[]{check,install,cancel,restart})actions.Controls.Add(b);
+  Action refresh=()=>{if(state.IsDisposed)return;state.Text=onlineStatus;progress.Value=onlineProgress;check.Enabled=!updateBusy;install.Enabled=!updateBusy&&onlineRelease!=null&&new Version(onlineRelease.Version)>new Version(AsterUpdate.CurrentVersion)&&installedUpdateFolder==null;cancel.Enabled=updateCancellation!=null;restart.Enabled=!updateBusy&&installedUpdateFolder!=null;};refresh();
+  Action<string> show=message=>{onlineStatus=message;refresh();};
+  var uiTimer=new System.Windows.Forms.Timer{Interval=300};uiTimer.Tick+=(s,e)=>refresh();flow.Disposed+=(s,e)=>uiTimer.Dispose();uiTimer.Start();
+  cancel.Click+=(s,e)=>{if(updateCancellation!=null)updateCancellation.Cancel();};
+  check.Click+=async(s,e)=>{if(updateBusy)return;updateBusy=true;onlineRelease=null;updateCancellation=new CancellationTokenSource(TimeSpan.FromSeconds(60));show("Checking for updates…");try{var release=await OnlineUpdate.Check(updateCancellation.Token);onlineRelease=release;show(new Version(release.Version)>new Version(AsterUpdate.CurrentVersion)?"Aster "+release.Version+" is available · "+(release.Size/1048576.0).ToString("F1")+" MB\r\n\r\n"+release.Notes:"You are up to date. Installed: "+AsterUpdate.CurrentVersion+".");}catch(OperationCanceledException){show("Update check canceled or timed out.");}catch(Exception ex){show("Could not check for updates. The GitHub release may not be published yet, or the connection is unavailable.\r\n\r\n"+ex.Message);}finally{updateCancellation.Dispose();updateCancellation=null;updateBusy=false;refresh();}};
+  install.Click+=async(s,e)=>{if(updateBusy||onlineRelease==null)return;updateBusy=true;onlineProgress=0;var release=onlineRelease;string zip=null;updateCancellation=new CancellationTokenSource(TimeSpan.FromMinutes(15));show("Downloading Aster "+release.Version+"…");try{
+   zip=await OnlineUpdate.Download(release,Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Aster","Downloads"),new Progress<int>(value=>{onlineProgress=value;if(!progress.IsDisposed)progress.Value=value;}),updateCancellation.Token);
+   updateCancellation.Token.ThrowIfCancellationRequested();updateCancellation.Dispose();updateCancellation=null;show("Verifying and installing… Keep Aster open.");
+   string package=zip;installedUpdateFolder=await Task.Run(()=>{var reviewed=AsterUpdate.Inspect(package);if(reviewed.Manifest.Version!=release.Version||!string.Equals(reviewed.PackageHash,release.Sha256,StringComparison.OrdinalIgnoreCase))throw new IOException("Package does not match the signed release.");return AsterUpdate.Install(package,reviewed.PackageHash,Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Aster","Versions"),AppDomain.CurrentDomain.BaseDirectory);});show("Aster "+release.Version+" is installed. Select Restart into update when ready.");
+  }catch(OperationCanceledException){show("Download canceled or timed out. Your current Aster is unchanged.");}catch(Exception ex){show("Update failed. Your current Aster is unchanged.\r\n"+ex.Message);}finally{if(updateCancellation!=null){updateCancellation.Dispose();updateCancellation=null;}if(zip!=null)try{File.Delete(zip);}catch{}updateBusy=false;refresh();}};
+  restart.Click+=(s,e)=>{if(updateBusy||installedUpdateFolder==null)return;string folder=installedUpdateFolder;Close();if(!IsDisposed)return;try{Process.Start(new ProcessStartInfo(Path.Combine(folder,"Aster.exe")){UseShellExecute=true,WorkingDirectory=folder});}catch{MessageBox.Show("The update could not open. Open Aster.exe in:\r\n"+folder);}};
+  flow.Controls.Add(new Label{Text="Update source: github.com/abdul2277/Aster\r\nRelease signatures and download hashes are verified before installation.\r\nChecking does not send your location, notes or Telegram credentials.",AutoSize=true,Margin=new Padding(0,18,0,0)});
+ }
+}
+}

@@ -1,0 +1,6 @@
+﻿ASTER v27
+
+Extract the whole ZIP and open Aster.exe. Existing v26 users can install this ZIP once with their existing Update Aster page.
+
+After that, Update Aster uses Check for updates, Download & install, Restart into update. Releases must be published on abdul2277/Aster first.
+Keep all bundled files together.

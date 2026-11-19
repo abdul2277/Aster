@@ -1,0 +1,517 @@
+{
+  "Schema": 1,
+  "AppId": "aster.desktop",
+  "Version": "1.4",
+  "Files": [
+    {
+      "Name": "Advisor.cs",
+      "Size": 25174,
+      "Sha256": "e4b3967e34eb94f4a46a4c3b355c303d09c067f4b381ef53fb3fc65b983210d0"
+    },
+    {
+      "Name": "AirDefense/.gitignore",
+      "Size": 60,
+      "Sha256": "cc59fdb6e1622d34d27abc0e2ecd3c67c2b947c22a5c39e18d2182819a6e08b4"
+    },
+    {
+      "Name": "AirDefense/air_defense.py",
+      "Size": 18975,
+      "Sha256": "ff9cf250522c35b7d80a3dfaf93798c6d8ba2aa8b576920cffc051445351086c"
+    },
+    {
+      "Name": "AirDefense/config.example.json",
+      "Size": 718,
+      "Sha256": "77c51ad830c95b7d3622b59ed0f6fcd47bafcd612ec3b9a7d4195ec4221d83ec"
+    },
+    {
+      "Name": "AirDefense/places.json",
+      "Size": 16,
+      "Sha256": "2deb2aa4c4276846c82633a31415487b878c822a4365f86c2f41ab6d1072081e"
+    },
+    {
+      "Name": "AirDefense/README.md",
+      "Size": 10086,
+      "Sha256": "6c12c64c22d65e811aeb51f0c10a0c41d641d3968bfb1390f73ef5f2290bd637"
+    },
+    {
+      "Name": "AirDefense/TELEGRAM.md",
+      "Size": 6807,
+      "Sha256": "f6242b395e055fad1fe9482f1ca7a3819f8a27cab48d235805cf7a881678cf6e"
+    },
+    {
+      "Name": "AirDefense/telegram_monitor.py",
+      "Size": 9973,
+      "Sha256": "13ae28a6618c00fd7fc14add100a563e22c799e87a25ba134353df4075698a01"
+    },
+    {
+      "Name": "AirDefense/test_air_defense.py",
+      "Size": 8849,
+      "Sha256": "0843d4ae161192e029085777a84f9a043c1d0c836cfa0c420b0060ee6433a738"
+    },
+    {
+      "Name": "AirDefense/test_telegram_monitor.py",
+      "Size": 5788,
+      "Sha256": "d1499ee89959ff339860719d8198ee863282fe005ccc09c383e2703582666528"
+    },
+    {
+      "Name": "AirDefenseLauncher.cs",
+      "Size": 2556,
+      "Sha256": "15b8035107ab2752c9c46920e0ecdb3fae83d9b7192774879b26349fb092c72c"
+    },
+    {
+      "Name": "AlertLocation.cs",
+      "Size": 4341,
+      "Sha256": "3a7f6ea74f3b9311030ee06f6fb24eae735f5a7ee79887f3fc9428985a931a86"
+    },
+    {
+      "Name": "Aster-artwork.png",
+      "Size": 30819,
+      "Sha256": "05c021f0b9384832bf930833e074664bfd4b8cfb7493e0ef8321b1b57695549d"
+    },
+    {
+      "Name": "Aster.exe",
+      "Size": 473088,
+      "Sha256": "1a86543f365bd8a05d803a04e37126f713423e42456948074c8509a78dff2fd0"
+    },
+    {
+      "Name": "Aster.ico",
+      "Size": 35880,
+      "Sha256": "ac9c93fe92251d3d5aaeee3910a00b885bd02557163cb7f45ce811a32fe69b87"
+    },
+    {
+      "Name": "AsterAlerts.cs",
+      "Size": 12507,
+      "Sha256": "c3268df1c11e6bcabd41119862f4624d5329552d8e856ac51ac42bd2bf1ec9c8"
+    },
+    {
+      "Name": "AsterFeatures.cs",
+      "Size": 14329,
+      "Sha256": "4a09b4f0fb4f39a1a401358d6c74ff497d1ea72b64ce00258856bdcf337a0f23"
+    },
+    {
+      "Name": "AsterTaskManager.cs",
+      "Size": 37546,
+      "Sha256": "de5e8b479ffb98fe01dc5ad329071599348cc77f05c5e1cb7f7d65c52aa16545"
+    },
+    {
+      "Name": "AuraCatalog.cs",
+      "Size": 2384,
+      "Sha256": "860755a2892c5ffc2fdfc514b79f02631d76da4b61949e8f7117b412f8ced7b6"
+    },
+    {
+      "Name": "AuraWallpaper.cs",
+      "Size": 35644,
+      "Sha256": "be5fb9e1d22d8b74bd544469906c4b5c2a3456c7e78763271ecfb8ac39aa8e2e"
+    },
+    {
+      "Name": "AuraWallpaper.exe",
+      "Size": 116224,
+      "Sha256": "64b729d17ba53fbe65f439b381a24d23e9ae5ddc60ce4d8e733b6ceeab577ac3"
+    },
+    {
+      "Name": "BackupCenter.cs",
+      "Size": 11188,
+      "Sha256": "6c8951522948a5a523c4a577b57df978b53e1e0a26f8a85fc06c01b5e26c09c2"
+    },
+    {
+      "Name": "Brand.cs",
+      "Size": 1329,
+      "Sha256": "e22e2551a9bf2b81a7695a687e4680a91e1a2b440c2a9d1ae37465d536a1b680"
+    },
+    {
+      "Name": "Build.cmd",
+      "Size": 1667,
+      "Sha256": "5fab5a66be15fbd84fa23894b9f223b886c7b6e5afdf9539b200b1e1c3eaacda"
+    },
+    {
+      "Name": "Convenience.cs",
+      "Size": 13373,
+      "Sha256": "72dba0705dacd2a6f2e0f9cc7584f8afa3f0524a162e48ba9b004809918d6b82"
+    },
+    {
+      "Name": "DailyPicture.cs",
+      "Size": 7448,
+      "Sha256": "ac7e16e6cb56ba77cd7256b92903e58b792780f64111256a1641e709aa0081a8"
+    },
+    {
+      "Name": "EmbeddedVideo.cs",
+      "Size": 3948,
+      "Sha256": "f626f5a611e2a1f43185029bfd316082130aedb29435f83a398b6a2d02475458"
+    },
+    {
+      "Name": "Extras.cs",
+      "Size": 2044,
+      "Sha256": "1c58da93117811d2d511f325dbad7951941264eda48191a438200fc30f24972b"
+    },
+    {
+      "Name": "Greeting.cs",
+      "Size": 4596,
+      "Sha256": "58eff099404cc01b3d9c75330c3b3992e96831bed4fbbcdd85b02e18620ca18f"
+    },
+    {
+      "Name": "Hardware.cs",
+      "Size": 13668,
+      "Sha256": "ea2235b38af0b5e6a7d10c21d6c3c574fb573431bbf49c7be4ea70cc408e28d4"
+    },
+    {
+      "Name": "home-location.json",
+      "Size": 51,
+      "Sha256": "c9643abdc59ae546cedc307b293baea9ad60a0d2d967fcc504983953b4c1edd9"
+    },
+    {
+      "Name": "Legendary.cs",
+      "Size": 12427,
+      "Sha256": "b691d1691b609b57f58335fe448b1bfbd9777056c18d0d1d6f2dc36ab66b73a6"
+    },
+    {
+      "Name": "Make-Update.py",
+      "Size": 1612,
+      "Sha256": "8badd3567b03ea25271eb78cb14200b99f6491be4724fcd6575925401493ee3a"
+    },
+    {
+      "Name": "Microsoft.Web.WebView2.Core.dll",
+      "Size": 603712,
+      "Sha256": "88a3b62f45225a811cdb85df6dfd95c2bff9a0e43e3b04f813b125eaca56cc9f"
+    },
+    {
+      "Name": "Microsoft.Web.WebView2.WinForms.dll",
+      "Size": 38488,
+      "Sha256": "29fc954c3fde1749817d158f3dd5ebe9efd3b3ce9708d86092fb1e9f023a1cb0"
+    },
+    {
+      "Name": "NetworkLab.cs",
+      "Size": 16696,
+      "Sha256": "5df063261e028e536166df4dcab5b3dad249715c8e40c97360b977c11fe1d2d2"
+    },
+    {
+      "Name": "ONLINE-UPDATES.md",
+      "Size": 2580,
+      "Sha256": "f39750c0a4c7a528c0810229331682f406267e8d9116704e1554765a4f520d46"
+    },
+    {
+      "Name": "OnlineUpdates.cs",
+      "Size": 10557,
+      "Sha256": "4cd6d65a00f1ac5d3483819ccb3282f58c7b43ec3c48ebd5c0264dbc6ab4bc93"
+    },
+    {
+      "Name": "PersonalWorkspace.cs",
+      "Size": 9711,
+      "Sha256": "c8abc9a8fe0c030d7bd757133262d5d79bc2c5324ab3fc705e04f12d92da0e93"
+    },
+    {
+      "Name": "PlanRunner.cs",
+      "Size": 3992,
+      "Sha256": "3d0e0ad500765ca717c9574effd7e17c34c173ddb673b06c7764020943b7984c"
+    },
+    {
+      "Name": "Playful.cs",
+      "Size": 12085,
+      "Sha256": "fbf471bde0af2935c6b6ff6f576771ffc624ca267d88ef6389d8a340abc0d49c"
+    },
+    {
+      "Name": "PremiumWorkspace.cs",
+      "Size": 7546,
+      "Sha256": "a1113fc10abf251d1cf3e1fa499cc4e4763479038e72ab765d2c77377b80b984"
+    },
+    {
+      "Name": "Prepare-Online-Release.py",
+      "Size": 2977,
+      "Sha256": "87d2d687d9c0581302718efdd574cbd28155a96a5eca8beadfd301372ac3d0a6"
+    },
+    {
+      "Name": "README.md",
+      "Size": 41345,
+      "Sha256": "6944ef4fc5796527285d0178323d40acc50b01fbeb4d8480d7e3c358a6cda816"
+    },
+    {
+      "Name": "Recovery.cs",
+      "Size": 9436,
+      "Sha256": "880dd50dc7b18769b66ff2ce55121693dcd3baebe11a1d6af7502865fe651289"
+    },
+    {
+      "Name": "runtime/DLLs/_asyncio.pyd",
+      "Size": 75056,
+      "Sha256": "6b8466f190e973f7fb42bc928839eb0d2a8b95ef142bf19534b524ba84375029"
+    },
+    {
+      "Name": "runtime/DLLs/_bz2.pyd",
+      "Size": 88880,
+      "Sha256": "861f0743d5ccb82886894ae76217b314b0d5394743c4f021cd8578c997a4b2fc"
+    },
+    {
+      "Name": "runtime/DLLs/_ctypes.pyd",
+      "Size": 131888,
+      "Sha256": "926df1f47c2a782ba154d6824a84aee7197a32eb6b781c2fc33120851e0fb53b"
+    },
+    {
+      "Name": "runtime/DLLs/_ctypes_test.pyd",
+      "Size": 40752,
+      "Sha256": "ac564be842fbb0921ac3f8ae914afd36ff90eabf6c3afbeedb61be2da058fda0"
+    },
+    {
+      "Name": "runtime/DLLs/_decimal.pyd",
+      "Size": 263984,
+      "Sha256": "ff83d946d36a108f72475a274ef97d00210ce7616ca6498212557e800b082a35"
+    },
+    {
+      "Name": "runtime/DLLs/_elementtree.pyd",
+      "Size": 137520,
+      "Sha256": "6d58a64466c573baa301b25c58e9bf30ffa52b60deb4eb475e7b71b7832a1e63"
+    },
+    {
+      "Name": "runtime/DLLs/_hashlib.pyd",
+      "Size": 70448,
+      "Sha256": "6b7e1eb9676af48db2e4a2812ab0825379e20e76b6f901631589a9cdb8f96ff6"
+    },
+    {
+      "Name": "runtime/DLLs/_lzma.pyd",
+      "Size": 168240,
+      "Sha256": "00d365936c7860dd887bcec422168c3404fcae221dea40e4e6a677adcaebd6b5"
+    },
+    {
+      "Name": "runtime/DLLs/_msi.pyd",
+      "Size": 48944,
+      "Sha256": "1c6534fa68cf82e249e1e63f97a496bad55a8d9856d8a49aeaa0f44a1742601b"
+    },
+    {
+      "Name": "runtime/DLLs/_multiprocessing.pyd",
+      "Size": 39728,
+      "Sha256": "10553874fffc57a649b42d63509f5e87a4cd4cf2c40e2a6a0657b1c2ac805647"
+    },
+    {
+      "Name": "runtime/DLLs/_overlapped.pyd",
+      "Size": 59696,
+      "Sha256": "57b9635e180fa1b89f9ff0d44b9dff121ce7c05a3dc6dd0371cbc13dbfa487e8"
+    },
+    {
+      "Name": "runtime/DLLs/_queue.pyd",
+      "Size": 36144,
+      "Sha256": "300aba733854beb48a9426c955627c0d0e945e5b76175e5f2b68c5fe5aa81201"
+    },
+    {
+      "Name": "runtime/DLLs/_socket.pyd",
+      "Size": 87344,
+      "Sha256": "6be442ce5355de1c9d7f2c1bd3d911f37eda93b43c30acf8b1eeccfc58a5df37"
+    },
+    {
+      "Name": "runtime/DLLs/_sqlite3.pyd",
+      "Size": 127792,
+      "Sha256": "dfc7068874e8f6f9b879eead0dc0aead22d8d31e8ba695a82124e7a0bacf8fa7"
+    },
+    {
+      "Name": "runtime/DLLs/_ssl.pyd",
+      "Size": 180528,
+      "Sha256": "65dcf1f0a513ee4c7f4717da11aa1ec098acb00446341c7277b8ee740425b4ff"
+    },
+    {
+      "Name": "runtime/DLLs/_testbuffer.pyd",
+      "Size": 59184,
+      "Sha256": "df3a1d02dda9f3ea08749e659b582aa7b964fac4fa27f2fc8739195a823c0f5a"
+    },
+    {
+      "Name": "runtime/DLLs/_testcapi.pyd",
+      "Size": 313648,
+      "Sha256": "258e8f12506e351727a9e607b8e19ce1f41e88f6f03e6f3b8b6d3205f8c1b7e9"
+    },
+    {
+      "Name": "runtime/DLLs/_testclinic.pyd",
+      "Size": 70960,
+      "Sha256": "983f89ac0cc090eb0779de66ab8b272973c249bdec537d812014c6324ea63aca"
+    },
+    {
+      "Name": "runtime/DLLs/_testconsole.pyd",
+      "Size": 31024,
+      "Sha256": "f99bc9ea7a9a13270d644c165045bfed028170c6f31bda167525a63e81b61257"
+    },
+    {
+      "Name": "runtime/DLLs/_testimportmultiple.pyd",
+      "Size": 28976,
+      "Sha256": "9a21b34b22cf27272039990154ab86cbdeeae06f3c64713ff9a9f40cc2aa4865"
+    },
+    {
+      "Name": "runtime/DLLs/_testinternalcapi.pyd",
+      "Size": 55600,
+      "Sha256": "a78d30e977fbd40b3abeb356f17e1c9e5048bb68965046e5320acf22a01e23e2"
+    },
+    {
+      "Name": "runtime/DLLs/_testmultiphase.pyd",
+      "Size": 43312,
+      "Sha256": "60116a3e07a743fd316cdfc340a44d1e2162a03e98ce71c9cbd07163f2fcb76c"
+    },
+    {
+      "Name": "runtime/DLLs/_testsinglephase.pyd",
+      "Size": 34096,
+      "Sha256": "65c03f895826e9e7d9dd060224d607e66392f323ffda32ab735da3a26c8f5b66"
+    },
+    {
+      "Name": "runtime/DLLs/_tkinter.pyd",
+      "Size": 70960,
+      "Sha256": "2f0104f77a1a51c51518a49eadc7097169b1bdfd8a268a1c8d70066bb8464d04"
+    },
+    {
+      "Name": "runtime/DLLs/_uuid.pyd",
+      "Size": 29488,
+      "Sha256": "cd456dce0f6d88f0e05ca4f273fb39e91ef1fbe1e035c7ec4d27c37cbe7b4b03"
+    },
+    {
+      "Name": "runtime/DLLs/_wmi.pyd",
+      "Size": 41264,
+      "Sha256": "effc630565fa74e4ece15d574c47e0ef3af58af7ed4700c041155f9dc0eafbeb"
+    },
+    {
+      "Name": "runtime/DLLs/_zoneinfo.pyd",
+      "Size": 52016,
+      "Sha256": "5ec7126a854882023f77db32340fa2131db01f73015cd3f8b45a8c6d8f227c58"
+    },
+    {
+      "Name": "runtime/DLLs/libcrypto-3-x64.dll",
+      "Size": 8003376,
+      "Sha256": "0d54af54cd69b602b22d8478c3e4e8d82ad2a53f4d2f4a64f156b42d02a1339e"
+    },
+    {
+      "Name": "runtime/DLLs/libffi-8.dll",
+      "Size": 43824,
+      "Sha256": "f39e5a9ff36f4c3dd74b72bce4726e07b8b77ceec92d4a8d5b788e7f0bc061af"
+    },
+    {
+      "Name": "runtime/DLLs/libssl-3-x64.dll",
+      "Size": 1599280,
+      "Sha256": "593232feba3cfaf89692ce9de507af6965f78ddf41f2d4f7f0cc89746f7972a6"
+    },
+    {
+      "Name": "runtime/DLLs/pyexpat.pyd",
+      "Size": 226096,
+      "Sha256": "fff5b9efc872724bef995e189977b66339e6222d2161c19d0a360904d6017c80"
+    },
+    {
+      "Name": "runtime/DLLs/select.pyd",
+      "Size": 34608,
+      "Sha256": "63db102d9edcdbd1fbdab77ba62d40c7653ec7d684f8e98ebb50d0542f2e0245"
+    },
+    {
+      "Name": "runtime/DLLs/sqlite3.dll",
+      "Size": 1623344,
+      "Sha256": "7030e86c37cfad75bc3ce420198af35f9a255adbb6ba575a26ea84728d8a2620"
+    },
+    {
+      "Name": "runtime/DLLs/tcl86t.dll",
+      "Size": 1866480,
+      "Sha256": "fbfd065f861ec0a90dd513bc209c56bbc23c54d2839964a0ec2df95848af7860"
+    },
+    {
+      "Name": "runtime/DLLs/tk86t.dll",
+      "Size": 1541872,
+      "Sha256": "cd2f60075064dfc2e65c88b239a970cb4bd07cb3eec7cc26fb1bf978d4356b08"
+    },
+    {
+      "Name": "runtime/DLLs/unicodedata.pyd",
+      "Size": 1143600,
+      "Sha256": "6fd49b72920f549c8582b31796320cef6870ba7d464098e58c1f4235dd608849"
+    },
+    {
+      "Name": "runtime/DLLs/winsound.pyd",
+      "Size": 34096,
+      "Sha256": "b85f75957d934b739f72af73639b759a0c1f21934882be61aabff08db64387b7"
+    },
+    {
+      "Name": "runtime/LICENSE.txt",
+      "Size": 25066,
+      "Sha256": "886a0ead2d89030ee62dbff52b04e47ab91998341295bb9c56fb952b4e081c7a"
+    },
+    {
+      "Name": "runtime/python.exe",
+      "Size": 107312,
+      "Sha256": "d41bad46673f64e0d02f23797f53f90ccf60f27d6eda8d86dd2d4bbeae5a858c"
+    },
+    {
+      "Name": "runtime/python3.dll",
+      "Size": 71984,
+      "Sha256": "0366ee3d630c26ffc27bfab162648ae8c5cadc74b4b46f3e179ca70f4436cab9"
+    },
+    {
+      "Name": "runtime/python312._pth",
+      "Size": 24,
+      "Sha256": "b46d6b929fb40dabcf77086e15764ac1e66ae2fb9c8160974e8aa7896aa215bb"
+    },
+    {
+      "Name": "runtime/python312.dll",
+      "Size": 6985520,
+      "Sha256": "8bb70bceffd5877733a957b31c392ca027bd2f84230e00de1654f994422fa2af"
+    },
+    {
+      "Name": "runtime/python312.zip",
+      "Size": 2714800,
+      "Sha256": "82a9d7291574986c1197583c9d8255484f37120c7453893969f1d9379eabb3b4"
+    },
+    {
+      "Name": "runtime/vcruntime140.dll",
+      "Size": 124544,
+      "Sha256": "d5e4d9a3e835fa679450145d6a7d94e36573a509317111904d9b3712c30d9066"
+    },
+    {
+      "Name": "runtime/vcruntime140_1.dll",
+      "Size": 49792,
+      "Sha256": "1f2d41c4aa5db0bc33ebf7b66d72943a817d7ce6cbe880502a9403823633093f"
+    },
+    {
+      "Name": "SessionTools.cs",
+      "Size": 11967,
+      "Sha256": "a601309ec732ca10d17203595094e0aabbe13b871a7b70d085f4017b33fe615b"
+    },
+    {
+      "Name": "START-HERE.txt",
+      "Size": 323,
+      "Sha256": "92a768e571ab1e67264ceb2d7c7387815647abc78274a6ec884548736fc61ac3"
+    },
+    {
+      "Name": "Startup.cs",
+      "Size": 7619,
+      "Sha256": "cd690662ef3f49a2ee602273b6c47aa2d79c2250d80c7314ab295f2de83c58a9"
+    },
+    {
+      "Name": "Themes.cs",
+      "Size": 7412,
+      "Sha256": "b1e38aa980c57061e9eea5ac6f30bbeeee53dc2b0c5565279cb6fbb9a09b02b9"
+    },
+    {
+      "Name": "ThemeStudio.cs",
+      "Size": 8567,
+      "Sha256": "bd9f0d3347deae541f37e1d1ddf88faf5923f95f464c0c1e54ef70ed397a4713"
+    },
+    {
+      "Name": "ToolsHub.cs",
+      "Size": 10089,
+      "Sha256": "baafb5ae96a55e77d86e81a48bb45c9e87de675de7e823c2e6ad1d9872f9cd10"
+    },
+    {
+      "Name": "update-public-key.xml",
+      "Size": 583,
+      "Sha256": "d76e16b74d02890b62a1a14eb3aaa8d51ef23889cbce4d85ca6c09782ce97584"
+    },
+    {
+      "Name": "Updates.cs",
+      "Size": 13916,
+      "Sha256": "a3d1d28cbc18c2d05c49daf8b2d473d1066692d0005d7a96e261de2a2fc1a74c"
+    },
+    {
+      "Name": "Video/index.html",
+      "Size": 2215,
+      "Sha256": "1ef21028b4ffbe904a3c57e51e970b1f521dfb02da7418a210f1d53eb8b42562"
+    },
+    {
+      "Name": "WEBVIEW2-LICENSE.txt",
+      "Size": 1610,
+      "Sha256": "db7291538f87c07744a32b6743ce92f9704645760f312eac5d0969919fe96b78"
+    },
+    {
+      "Name": "WebView2Loader.dll",
+      "Size": 165968,
+      "Sha256": "462b36fd1be6ca9f7563466a89e57c41ef4a4def3e0a84fa885d203aea4a3aaf"
+    },
+    {
+      "Name": "Workspace.cs",
+      "Size": 17854,
+      "Sha256": "f29c7a22bbc9dcc6176e22b6ad9131df7d4aee236417179673ed5bf3c87467fc"
+    }
+  ]
+}
