@@ -1,0 +1,9 @@
+/home/user/Aster/src/bin/Release/net48/Aster.exe.config
+/home/user/Aster/src/bin/Release/net48/Aster.exe
+/home/user/Aster/src/bin/Release/net48/Aster.pdb
+/home/user/Aster/src/obj/Release/net48/Aster.csproj.AssemblyReference.cache
+/home/user/Aster/src/obj/Release/net48/Aster.GeneratedMSBuildEditorConfig.editorconfig
+/home/user/Aster/src/obj/Release/net48/Aster.csproj.CoreCompileInputs.cache
+/home/user/Aster/src/obj/Release/net48/Aster.sourcelink.json
+/home/user/Aster/src/obj/Release/net48/Aster.exe
+/home/user/Aster/src/obj/Release/net48/Aster.pdb
