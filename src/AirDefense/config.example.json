@@ -1,0 +1,17 @@
+{
+  "air_defense_feed": {
+    "home_lat_env": "ASTER_HOME_LAT",
+    "home_lon_env": "ASTER_HOME_LON",
+    "radius_km": 20,
+    "poll_seconds": 30,
+    "max_age_seconds": 900,
+    "telegram_token_env": "ASTER_TELEGRAM_TOKEN",
+    "telegram_chat_env": "ASTER_TELEGRAM_CHAT_ID",
+    "state_file": "air_defense.sqlite3",
+    "sources": [
+      {"name": "Regional public advisories", "format": "rss", "url": "https://replace-with-provider.invalid/alerts.rss"},
+      {"name": "Geolocated public reports", "format": "geojson", "url": "https://replace-with-provider.invalid/alerts.geojson"},
+      {"name": "Structured regional API", "format": "json", "url": "https://replace-with-provider.invalid/alerts.json"}
+    ]
+  }
+}
